@@ -1,0 +1,1940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phil's Refund Rush</title>
+<meta name="description" content="Phil plays every Steam game for exactly 1:59:59, then refunds it. Can you refund like Phil?">
+<meta property="og:title" content="Phil's Refund Rush">
+<meta property="og:description" content="Phil plays every Steam game for exactly 1:59:59, then refunds it. Can you refund like Phil?">
+<meta property="og:image" content="https://zeredbaron.github.io/phil-refund-rush/og.png">
+<meta property="og:url" content="https://zeredbaron.github.io/phil-refund-rush/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#1a0b3a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Russo+One&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cyan:#5ee7ff; --pink:#ff4fd8; --gold:#ffd24a; --green:#a4ff3a; --red:#ff4057;
+  --glass:rgba(12,8,30,.58); --line:rgba(140,120,255,.28); --text:#e8e6ff; --muted:#9a93c9;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#07030f}
+body{color:var(--text);font-family:"Rajdhani","Segoe UI",Helvetica,Arial,sans-serif;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;cursor:pointer}
+kbd{font-family:inherit;font-weight:700;font-size:.8em;background:#ffffff14;border:1px solid #ffffff33;border-bottom-width:3px;border-radius:5px;padding:0 6px;margin:0 2px}
+.hidden{display:none!important}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
+
+/* ---------- HUD ---------- */
+#hud{position:fixed;top:12px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:22px;padding:10px 18px;
+  background:var(--glass);border:1px solid var(--line);border-radius:14px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  box-shadow:0 10px 40px #0008, inset 0 1px 0 #ffffff14;z-index:10;white-space:nowrap}
+.logo{font-family:"Russo One",sans-serif;font-size:18px;letter-spacing:1px;color:#fff;line-height:1}
+.logo span{color:var(--cyan);text-shadow:0 0 12px var(--cyan)}
+.stat{display:flex;flex-direction:column;font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;font-weight:600;min-width:62px}
+.stat b{font-size:24px;color:#fff;letter-spacing:0;line-height:1.05;font-variant-numeric:tabular-nums}
+#hWallet b{color:var(--green);text-shadow:0 0 14px #a4ff3a66}
+#hCombo b{color:var(--gold);text-shadow:0 0 14px #ffd24a66}
+.sus{min-width:170px}
+.susbar{height:10px;background:#0006;border-radius:6px;overflow:hidden;margin-top:6px;border:1px solid #ffffff22}
+.susfill{height:100%;width:0;background:linear-gradient(90deg,#5ee7ff,#ffd24a 60%,#ff4057);box-shadow:0 0 12px #ff405788;transition:width .25s}
+.sus.hot{color:var(--red)}
+.sus.hot .susbar{animation:blink .45s infinite alternate;border-color:var(--red)}
+.hbtn{background:#ffffff0d;border:1px solid #ffffff22;color:#fff;border-radius:8px;padding:6px 9px;font-size:15px}
+.hbtn:hover{background:#ffffff22}
+
+/* ---------- play HUD ---------- */
+#clockBox{position:fixed;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:5}
+#clock{font-family:"Rajdhani",sans-serif;font-weight:700;font-size:clamp(40px,6.4vh,68px);color:#fff;line-height:.9;letter-spacing:2px;
+  font-variant-numeric:tabular-nums;text-shadow:0 0 18px #5ee7ffaa,0 0 40px #5ee7ff55,0 3px 0 #0008}
+#clock.hiddenclock{color:#8f84c9;text-shadow:0 0 18px #8f84c9aa;animation:glitch .18s infinite}
+#clock.late{color:var(--red);text-shadow:0 0 18px #ff4057}
+#clockSub{font-size:13px;letter-spacing:3px;color:var(--muted);font-weight:600;margin-top:4px;text-transform:uppercase}
+#mods{display:flex;gap:6px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+.mod{background:#0009;border:1px solid #ffffff2a;border-radius:20px;padding:3px 11px;font-size:14px;font-weight:700;color:#fff;letter-spacing:.5px}
+.mod small{color:var(--muted);font-weight:600;margin-left:4px}
+.mod.gift{border-color:var(--pink);color:#ffc6f3;box-shadow:0 0 16px #ff4fd855}
+#lagMsg{margin-top:8px;color:var(--cyan);font-weight:700;font-size:16px;letter-spacing:1px}
+#lagMsg:before{content:"";display:inline-block;width:12px;height:12px;border:2px solid var(--cyan);border-top-color:transparent;border-radius:50%;margin-right:8px;vertical-align:-1px;animation:spin .5s linear infinite}
+
+#controls{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;gap:12px;align-items:stretch;z-index:10}
+#refundBtn{position:relative;border:none;border-radius:14px;padding:16px 58px;font-family:"Russo One",sans-serif;font-size:28px;letter-spacing:3px;color:#effff0;
+  background:linear-gradient(180deg,#8ee03a 0%,#4f9d18 100%);box-shadow:0 6px 0 #2f6a0c,0 0 34px #8ee03a66,inset 0 2px 0 #ffffff55;text-shadow:0 2px 0 #2f6a0c}
+#refundBtn small{display:block;font-family:"Rajdhani";font-size:14px;letter-spacing:4px;font-weight:700;opacity:.8}
+#refundBtn:active,#refundBtn.pressed{transform:translateY(4px);box-shadow:0 2px 0 #2f6a0c,0 0 34px #8ee03a66}
+#refundBtn.disabled{filter:grayscale(.8) brightness(.6)}
+#ffBtn{border:1px solid #ffffff2a;border-radius:14px;padding:10px 16px;background:var(--glass);color:#fff;font-weight:700;font-size:14px;letter-spacing:1px;backdrop-filter:blur(8px);line-height:1.2}
+#ffBtn b{display:block;font-size:24px}
+#ffBtn.on{border-color:var(--cyan);box-shadow:0 0 22px #5ee7ff88;color:var(--cyan)}
+
+#storeHint{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;z-index:10;font-size:18px;font-weight:700;letter-spacing:2px;color:#fff;
+  background:var(--glass);border:1px solid var(--line);padding:10px 20px;border-radius:12px;backdrop-filter:blur(8px);text-transform:uppercase}
+#storeTitle{position:fixed;left:50%;top:92px;transform:translateX(-50%);z-index:6;text-align:center;pointer-events:none}
+#storeTitle .st1{font-family:"Russo One";font-size:clamp(20px,3.2vh,30px);letter-spacing:4px;color:#fff;text-shadow:0 0 20px #ff4fd8aa}
+#storeTitle .sale{display:inline-block;margin-top:6px;background:linear-gradient(90deg,#ff4fd8,#ffd24a);color:#1a0626;font-weight:800;padding:3px 14px;border-radius:6px;letter-spacing:3px;animation:blink .4s infinite alternate}
+
+#labels{position:fixed;inset:0;pointer-events:none;z-index:6}
+.label{position:absolute;transform:translate(-50%,0);width:min(260px,28vw);pointer-events:auto;cursor:pointer;text-align:center;
+  background:var(--glass);border:1px solid var(--line);border-radius:12px;padding:9px 10px 10px;backdrop-filter:blur(8px);transition:border-color .15s, box-shadow .15s, transform .15s}
+.label.hover{border-color:var(--cyan);box-shadow:0 0 26px #5ee7ff66;transform:translate(-50%,-4px)}
+.label.cant{opacity:.45}
+.label .lk{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:#fff;color:#12082a;font-weight:800;font-size:15px;width:28px;height:28px;border-radius:8px;line-height:28px;box-shadow:0 0 16px #fff8}
+.label .lt{color:#fff;font-weight:700;font-size:17px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.label .lm{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin:5px 0 7px;min-height:22px}
+.label .lm span{font-size:12.5px;font-weight:700;background:#ffffff12;border-radius:10px;padding:2px 8px}
+.label .lm span.new{background:var(--pink);color:#fff}
+.label .lm span.plain{color:var(--muted);background:none}
+.label .lp{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:3px 6px}
+.label .lp > *{white-space:nowrap}
+.label .lp b{font-size:20px;color:#fff}
+.label .lp s{color:var(--muted);font-size:14px}
+.label .lp i{font-style:normal;font-size:13px;color:var(--gold);font-weight:700;border:1px solid #ffd24a55;border-radius:8px;padding:1px 7px}
+
+#bubble{position:fixed;z-index:7;max-width:230px;background:#fff;color:#1b1030;font-weight:700;font-size:15px;line-height:1.25;padding:10px 13px;border-radius:14px;
+  box-shadow:0 8px 30px #0008;pointer-events:none;transform:translate(-20%,-100%)}
+#bubble:after{content:"";position:absolute;left:22%;bottom:-9px;border:10px solid transparent;border-bottom:0;border-top-color:#fff}
+#bubble.pop{animation:pop .22s ease-out}
+#bubble.side:after{left:-9px;bottom:auto;top:50%;margin-top:-10px;border:10px solid transparent;border-left:0;border-right-color:#fff}
+
+#grade{position:fixed;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:8;width:max-content;max-width:94vw}
+#grade .gname{font-family:"Russo One";font-size:clamp(34px,min(9vh,10vw),96px);letter-spacing:3px;line-height:1;color:#fff;-webkit-text-stroke:2px #0006}
+#grade .gtime{font-size:22px;font-weight:700;color:#fff;margin-top:6px;letter-spacing:2px;text-shadow:0 2px 8px #000}
+#grade .gpts{font-size:30px;font-weight:700;color:#fff;text-shadow:0 2px 8px #000}
+#grade .gmult{font-size:16px;font-weight:700;color:#fff;letter-spacing:1px;text-shadow:0 2px 6px #000}
+#grade .gnear{font-size:20px;font-weight:800;color:var(--gold);margin-top:4px;text-shadow:0 2px 8px #000}
+#grade:before{content:"";position:absolute;inset:-40px -90px;z-index:-1;background:radial-gradient(closest-side,rgba(8,3,22,.72),rgba(8,3,22,0))}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse 75% 70% at 50% 42%,transparent 55%,rgba(6,0,16,.6) 100%)}
+#grade.show{animation:gradein 1.5s cubic-bezier(.2,.8,.3,1) forwards}
+
+#zoneHint{position:fixed;z-index:6;pointer-events:none;transform:translate(-100%,-50%);color:var(--gold);font-weight:800;font-size:15px;letter-spacing:1px;text-shadow:0 0 12px #000,0 0 4px #000;white-space:nowrap}
+
+#toasts{position:fixed;top:88px;right:16px;display:flex;flex-direction:column;gap:6px;z-index:30;align-items:flex-end;pointer-events:none;max-width:min(360px,44vw)}
+.toast{background:rgba(14,10,34,.92);border:1px solid var(--line);color:#fff;padding:8px 18px;border-radius:10px;font-size:16px;font-weight:600;box-shadow:0 6px 24px #000a;animation:toastin .25s ease-out;text-align:center}
+.toast.out{opacity:0;transition:opacity .4s}
+
+#banner{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:calc(88px + 4vh);pointer-events:none;z-index:25}
+#banner .bt{font-family:"Russo One";font-size:clamp(60px,12vh,120px);color:#fff;letter-spacing:6px;text-shadow:0 0 40px var(--pink),0 0 80px var(--cyan),0 6px 0 #0008;animation:zoom 2.6s ease-out forwards}
+#banner .bs{font-size:20px;font-weight:700;color:#fff;background:rgba(14,10,34,.9);border:1px solid var(--line);padding:12px 22px;border-radius:12px;margin-top:12px;max-width:680px;text-align:center;line-height:1.4;animation:fadeout 2.6s forwards}
+
+#chat{position:fixed;left:50%;transform:translateX(-50%);z-index:20;width:min(420px,90vw);background:#1b2030;border:1px solid #4a5a7a;border-radius:10px;box-shadow:0 20px 60px #000c;overflow:hidden;animation:pop .18s ease-out}
+#chat.nudge{animation:nudge .3s}
+#chat .ctop{background:#262d42;padding:8px 14px;font-size:14px;color:#aab;display:flex;justify-content:space-between;font-weight:600}
+#chat .cmsg{padding:14px 16px;display:flex;gap:12px}
+#chat .av{width:46px;height:46px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:26px;background:#3a4a6a;flex:0 0 46px}
+#chat .who{color:#6dcff6;font-weight:700;font-size:15px}
+#chat .txt{color:#fff;font-size:18px;font-weight:600;margin-top:2px;line-height:1.2}
+#chat .crow{display:flex;padding:0 16px 14px}
+#chat button{background:#3d4660;color:#fff;border:none;border-radius:6px;padding:9px 20px;font-size:15px;font-weight:700}
+#chat button:hover{background:#56638a}
+
+#ach{position:fixed;z-index:19;right:16px;bottom:120px;display:flex;gap:12px;align-items:center;padding:12px 18px;width:min(380px,86vw);cursor:pointer;
+  background:linear-gradient(135deg,#2c3a5d,#161c30);border:1px solid #5ee7ff66;border-radius:10px;color:#fff;box-shadow:0 10px 40px #000c;animation:pop .2s ease-out}
+#ach .tr{font-size:36px}
+#ach b{color:var(--cyan);font-size:12px;letter-spacing:2px;text-transform:uppercase}
+#ach .an{font-size:19px;font-weight:700}
+#ach small{display:block;color:var(--muted);font-size:13px}
+
+#form{position:fixed;left:50%;bottom:118px;transform:translateX(-50%);z-index:21;width:min(460px,92vw);background:rgba(14,10,34,.94);border:1px solid var(--cyan);border-radius:14px;padding:14px;box-shadow:0 0 40px #5ee7ff44;animation:pop .15s ease-out}
+#form .fq{font-weight:700;font-size:18px;color:#fff;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+#form .fq small{color:var(--red);font-size:14px;animation:blink .4s infinite alternate}
+#form button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;margin-top:6px;background:#ffffff0f;border:1px solid #ffffff22;color:#fff;border-radius:10px;padding:10px 12px;font-size:17px;font-weight:600}
+#form button:hover{background:#ffffff22;border-color:var(--cyan)}
+
+/* ---------- overlays ---------- */
+.overlay{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-start;justify-content:center;background:radial-gradient(ellipse at center,rgba(10,4,26,.55),rgba(5,2,12,.9));overflow:auto;padding:20px}
+.panel{width:min(780px,96vw);background:rgba(16,10,38,.82);border:1px solid var(--line);border-radius:20px;padding:30px 36px;box-shadow:0 30px 90px #000c, inset 0 1px 0 #ffffff1a;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.panel h1{margin:0;font-family:"Russo One";font-size:clamp(34px,6vw,58px);color:#fff;letter-spacing:2px;line-height:1;text-shadow:0 0 30px #ff4fd899}
+.panel h1 span{color:var(--cyan);text-shadow:0 0 24px var(--cyan)}
+.panel h2{margin:10px 0 16px;color:#cfc8ff;font-weight:600;font-size:19px;line-height:1.35}
+.panel ul{padding-left:0;list-style:none;font-size:17px;line-height:1.45;margin:12px 0 22px;display:grid;gap:7px}
+.panel li{display:flex;gap:10px}
+.panel li i{font-style:normal;flex:0 0 26px;text-align:center}
+.panel li b{color:#fff}
+.bigbtn{display:block;width:100%;border:none;border-radius:14px;padding:16px;font-family:"Russo One";font-size:24px;letter-spacing:4px;color:#fff;
+  background:linear-gradient(90deg,#ff4fd8,#7a5cff 50%,#2fd4ff);box-shadow:0 8px 30px #7a5cff66, inset 0 2px 0 #ffffff44}
+.bigbtn:hover{filter:brightness(1.12)}
+.hint{font-size:14px;color:var(--muted);text-align:center;margin-top:12px;font-weight:600;letter-spacing:1px}
+.statgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}
+.statgrid div{background:#ffffff0a;border:1px solid #ffffff14;border-radius:12px;padding:10px;text-align:center;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;font-weight:600}
+.statgrid b{display:block;font-size:26px;color:#fff;letter-spacing:0;margin-bottom:2px}
+.rank{font-family:"Russo One";font-size:24px;color:var(--gold);text-shadow:0 0 20px #ffd24a66}
+.rank small{display:block;font-family:"Rajdhani";color:var(--text);font-size:17px;font-weight:600;margin-top:4px;text-shadow:none}
+.shelf{background:#ffffff08;border:1px solid #ffffff12;border-radius:12px;padding:8px 14px;font-size:16px;max-height:150px;overflow:auto;margin-bottom:18px}
+.shelf .row{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid #ffffff0c}
+.shelf .row span:last-child{color:var(--muted)}
+.sectionlbl{font-size:13px;letter-spacing:3px;color:var(--muted);margin-bottom:6px;font-weight:700}
+#loading{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;background:#07030f;color:#fff;font-family:"Russo One",sans-serif;font-size:22px;letter-spacing:3px;text-align:center;padding:20px}
+
+body.redflash:after{content:"";position:fixed;inset:0;background:radial-gradient(ellipse at center,transparent 30%,#ff405766);pointer-events:none;z-index:40;animation:fadeout .6s forwards}
+
+@media (max-width:940px){
+  #hud{flex-wrap:wrap;justify-content:center;gap:4px 14px;width:calc(100vw - 16px);white-space:normal;padding:6px 10px;top:6px}
+  #hud .logo{display:none}
+  .stat{min-width:0;font-size:9px;letter-spacing:1px}
+  .stat b{font-size:19px}
+  .sus{flex:1 1 100%;order:10;min-width:0}
+  .hbtn{padding:4px 7px;font-size:13px}
+  #storeTitle{top:112px} #toasts{top:auto;bottom:130px;right:8px}
+  #bubble{max-width:170px;font-size:13px}
+  #refundBtn{padding:14px 34px;font-size:24px}
+  #banner .bs{font-size:16px;max-width:92vw}
+}
+#banner .bt{font-size:clamp(44px,min(12vh,16vw),120px)}
+.touch{display:none}
+@media (pointer:coarse), (max-width:700px){ .touch{display:inline} .kb{display:none} }
+body.bannering #storeTitle{opacity:0;transition:opacity .2s}
+.overlay > .panel{margin:auto}
+#clockBox:has(#lagMsg:not(.hidden)) #clockSub{display:none}
+@media (max-height:800px){ #banner{padding-top:calc(76px + 1vh)} #banner .bt{font-size:clamp(44px,min(10vh,16vw),120px)} }
+@media (max-height:800px) and (max-width:700px){ #banner .bs{font-size:14px;padding:8px 14px} }
+@media (min-width:941px) and (max-width:1180px){ #toasts{top:136px;max-width:260px} }
+@media (max-width:940px){ #ach{bottom:auto;top:96px;right:8px;width:min(300px,62vw);padding:8px 12px} #ach .tr{font-size:26px} }
+@media (max-width:700px){ .label .lp s{display:none} }
+@media (max-width:520px){ .panel{padding:22px 18px} .statgrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px} .statgrid div{padding:8px 2px;letter-spacing:.5px} .statgrid b{font-size:clamp(16px,5vw,26px)} }
+@media (max-aspect-ratio:9/10){ #clock{font-size:clamp(30px,4.6vh,56px)} }
+.label .lp i.allin{color:var(--red);border-color:#ff405788}
+@keyframes blink{from{opacity:1}to{opacity:.45}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pop{from{scale:.8;opacity:0}to{scale:1;opacity:1}}
+@keyframes toastin{from{transform:translateY(-12px);opacity:0}to{transform:none;opacity:1}}
+@keyframes zoom{0%{transform:scale(.3);opacity:0}14%{transform:scale(1.12);opacity:1}24%{transform:scale(1)}80%{opacity:1}100%{opacity:0;transform:scale(1.05)}}
+@keyframes fadeout{0%,72%{opacity:1}100%{opacity:0}}
+@keyframes gradein{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}22%{transform:translate(-50%,-50%) scale(1)}78%{opacity:1}100%{opacity:0;transform:translate(-50%,-70%) scale(1)}}
+@keyframes glitch{0%{transform:translate(0)}33%{transform:translate(-2px,1px)}66%{transform:translate(2px,-1px)}}
+@keyframes nudge{0%,100%{transform:translateX(-50%)}25%{transform:translateX(calc(-50% - 10px))}75%{transform:translateX(calc(-50% + 10px))}}
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div id="loading">LOADING PHIL'S LIBRARY…</div>
+
+<div id="hud">
+  <div class="logo">PHIL'S <span>REFUND</span> RUSH</div>
+  <div class="stat" id="hWallet">Wallet<b>$0</b></div>
+  <div class="stat" id="hScore">Score<b>0</b></div>
+  <div class="stat" id="hCombo">Combo<b>x1</b></div>
+  <div class="stat" id="hLevel">Level<b>1</b></div>
+  <div class="stat sus" id="hSus">Valve suspicion<div class="susbar"><div class="susfill"></div></div></div>
+  <button class="hbtn" id="muteBtn" title="Mute (M)">🔊</button>
+  <button class="hbtn" id="pauseBtn" title="Pause (P)">⏸</button>
+</div>
+
+<div id="storeTitle" class="hidden"><div class="st1">PICK A GAME TO "PLAY"</div><div class="sale hidden" id="saleTag">🔥 STEAM SALE · 50% OFF</div></div>
+<div id="labels"></div>
+<div id="bubble" class="hidden"></div>
+<div id="clockBox" class="hidden">
+  <div id="clock">0:00:00</div>
+  <div id="clockSub">of 2:00:00 refund window</div>
+  <div id="mods"></div>
+  <div id="lagMsg" class="hidden">Contacting Steam servers…</div>
+</div>
+<div id="zoneHint" class="hidden">GOLD ZONE: REFUND HERE ➜</div>
+<div id="grade"></div>
+<div id="controls" class="hidden">
+  <button id="refundBtn">REFUND<small>SPACE</small></button>
+  <button id="ffBtn" title="Hold Shift to fast-forward"><b>⏩</b><span class="kb">hold SHIFT</span><span class="touch">hold</span></button>
+</div>
+<div id="storeHint" class="hidden"><span class="kb">Press <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> or click a game</span><span class="touch">Tap a game to "buy" it</span></div>
+<div id="toasts"></div>
+<div id="banner" class="hidden"></div>
+
+<div id="chat" class="hidden">
+  <div class="ctop"><span>💬 Steam Chat</span><span>Esc to ignore</span></div>
+  <div class="cmsg"><div class="av"></div><div><div class="who"></div><div class="txt"></div></div></div>
+  <div class="crow"><button id="chatBtn">Ignore</button></div>
+</div>
+<div id="ach" class="hidden"><div class="tr">🏆</div><div><b>Achievement unlocked</b><div class="an"></div><small></small></div></div>
+<div id="form" class="hidden"></div>
+
+<div id="titleScreen" class="overlay hidden">
+  <div class="panel">
+    <h1>PHIL'S <span>REFUND</span> RUSH</h1>
+    <h2>Steam refunds any game played for under 2 hours. Phil plays every game for exactly 1:59:59. Tonight, you are Phil.</h2>
+    <ul>
+      <li><i>🛒</i><span><b>Pick a game</b> from the store with <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> or a click.</span></li>
+      <li><i>⏱️</i><span>The ring fills toward <b>2:00:00</b>. Hit <kbd>SPACE</kbd> to <b>refund</b> as late as you dare.</span></li>
+      <li><i>✨</i><span>The last 6 minutes are the <b style="color:var(--gold)">gold zone</b>. The last 2 are <b style="color:var(--pink)">PEAK PHIL</b>.</span></li>
+      <li><i>🔒</i><span>Miss 2:00:00 and Phil <b>owns the game forever</b>. The money is gone.</span></li>
+      <li><i>🕵️</i><span>Refunds raise <b>Valve suspicion</b>. At 100% you're banned. Letting a game run out cools Valve off.</span></li>
+      <li><i>⏩</i><span>Hold <kbd>SHIFT</kbd> to fast-forward. Risky, but skipping 40+ minutes pays a 25% bonus.</span></li>
+      <li><i>🎁</i><span>Later: hidden clocks, stutter, server lag, refund forms, and <b>gifts you must never refund</b>.</span></li>
+    </ul>
+    <button class="bigbtn" id="startBtn">START REFUNDING</button>
+    <div class="hint">Enter to start · P pause · M mute · <span id="titleHigh"></span></div>
+  </div>
+</div>
+
+<div id="overScreen" class="overlay hidden">
+  <div class="panel">
+    <h1 id="overTitle"></h1>
+    <h2 id="overSub"></h2>
+    <div class="rank" id="overRank"></div>
+    <div class="statgrid" id="overStats"></div>
+    <div class="sectionlbl">PHIL'S ACTUAL LIBRARY</div>
+    <div class="shelf" id="overShelf"></div>
+    <button class="bigbtn" id="againBtn">REFUND AGAIN</button>
+    <div class="hint">Enter to play again</div>
+  </div>
+</div>
+
+<div id="pauseScreen" class="overlay hidden">
+  <div class="panel" style="text-align:center;width:min(440px,92vw)">
+    <h1>PAUSED</h1>
+    <h2>The refund clock is frozen. If only Steam worked like this.</h2>
+    <button class="bigbtn" id="resumeBtn">RESUME</button>
+    <div class="hint">P or Esc to resume</div>
+  </div>
+</div>
+
+<script>
+  // Boot-failure reporting: Three.js comes from a CDN, and WebGL can be disabled.
+  function philFail(why){
+    if(window.__philBooted) return;
+    const el = document.getElementById("loading");
+    if(el) el.innerHTML = "COULDN'T START THE 3D ENGINE.<br><small style='font-family:Rajdhani;letter-spacing:1px;font-size:18px'>" + why + "</small>";
+  }
+  addEventListener("error", e => {
+    const t = e.target;
+    if(t && t !== window && t.tagName !== "SCRIPT") return;          // ignore stylesheet/font failures
+    philFail(t && t.tagName === "SCRIPT" ? "Three.js didn't download. This game needs an internet connection."
+      : /WebGL/i.test(e.message || "") ? "WebGL is turned off or unsupported in this browser."
+      : "Error: " + (e.message || "unknown"));
+  }, true);
+  setTimeout(() => philFail("This game loads Three.js from the internet. Check your connection and reload."), 12000);
+</script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from "three";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+
+// =====================================================================
+//  DATA
+// =====================================================================
+const LIMIT = 120;                 // Steam's refund window, in minutes of playtime
+const FLOOR_Y = -2.8;
+const CENTER = new THREE.Vector3(0, 1.4, 0);
+const STORE_X = [-3.9, 0, 3.9];
+const PLAY_SCALE = 1.3, STORE_SCALE = 0.92;
+const PED_TOP = CENTER.y - 1.4*PLAY_SCALE - 0.08;      // pedestal top sits just under the box
+const CLOCK_ANCHOR = new THREE.Vector3(0, PED_TOP - 0.95, 1.95);
+
+const TITLES = [
+  ["Elden Ring't","🗡️"],["Baldur's Gate: 2 Hours","🐉"],["Hollow Knight (Refunded)","🦋"],["Cyberpunk 2:00:77","🤖"],
+  ["Stardew Valve-ley","🌾"],["Call of Duty: Modern Refunds","🎖️"],["Red Dead Refundption 2","🤠"],["Half-Life: 2 Hours","🔧"],
+  ["The Witcher 3: Wild Refund","🐺"],["Hades II Hours","🔥"],["Portal to the Refund Page","🌀"],["Terraria Returns","🌳"],
+  ["Factorio (Tutorial Only)","⚙️"],["Balatro Refundo","🃏"],["Lethal Refund","📦"],["Sea of Refunds","🏴‍☠️"],
+  ["Goat Refund Simulator","🐐"],["Grand Theft Refund V","🚗"],["Dark Souls: Prepare to Refund","💀"],["Fallout: New Refunds","☢️"],
+  ["DOOM: Refundal","👹"],["Among Refunds","🧑‍🚀"],["Deep Rock: Galactic Regret","⛏️"],["Vampire Refunders","🧛"],
+  ["Palworld: Gotta Return 'Em All","🦖"],["Disco Elysium: Wallet Check","🕺"],["Slay the Refund","🗼"],["Outer Wilds (Didn't Get It)","🪐"],
+  ["Rocket Refund","🚀"],["Civ VI: One More Refund","🏛️"],["Subnautica: Below 2 Hours","🐠"],["Celeste (Too Hard)","🍓"],
+  ["Cities: Refundlines","🏙️"],["Helldivers 2 Hours","🪖"],["Getting Over It (at 1:59)","🦴"],["It Takes 2 Hours","💞"],
+  ["No Man's Sky (No Man's Money)","🛰️"],["Phasmophobia (Too Scary)","👻"],["Euro Truck Refund Sim","🚚"],["Sekiro: Refunds Die Twice","⚔️"],
+];
+const PRICES = [4.99,9.99,14.99,19.99,24.99,29.99,39.99,59.99,69.99];
+
+const MODS = {
+  fast:   {icon:"⚡", name:"Speedrun Mode",  desc:"clock runs 1.3×",                   mult:1.5, lvl:2},
+  zone:   {icon:"🔒", name:"Immersive",      desc:"hidden after 1:00 · 6th pulse = 1:50", mult:2.0, lvl:3},
+  form:   {icon:"📝", name:"Refund Form",    desc:"open it ~1:40 · 1.5s to pick",    mult:1.5, lvl:4},
+  stutter:{icon:"⏳", name:"Shader Stutter", desc:"clock freezes, then sprints",       mult:1.5, lvl:5},
+  lag:    {icon:"📡", name:"Server Lag",     desc:"refund lands 0.4s after you press", mult:1.5, lvl:6},
+  ramp:   {icon:"🐢", name:"Slow Burn",      desc:"starts slow, ends fast",            mult:1.5, lvl:7},
+};
+const UNLOCKS = {
+  2:"⚡ Speedrun Mode: clock runs 1.3× · 🏆 Achievements",
+  3:"🔒 Immersive: 6th pulse = 1:50 · 🎁 Gifts: never refund",
+  4:"📝 Refund forms · 💬 Friends interrupt (Esc)",
+  5:"⏳ Shader Stutter: freezes, then sprints",
+  6:"📡 Server Lag: refunds land 0.4s late",
+  7:"🐢 Slow Burn: starts slow, ends fast",
+  8:"☠️ Double trouble: two twists per game",
+};
+const GRADES = [
+  // cash = bonus "trading card" money as a fraction of the price, so precise play can refill the wallet
+  {key:"peak",   max:2,   name:"PEAK PHIL", pts:1500, sus:12, cash:0.12, combo:true,  color:"#ff6ad5", flash:[2.6,0.7,2.2], coins:54},
+  {key:"great",  max:6,   name:"GREAT",     pts:500,  sus:8,  cash:0.03, combo:true,  color:"#ffd24a", flash:[2.4,1.5,0.3], coins:36},
+  {key:"good",   max:15,  name:"GOOD",      pts:200,  sus:5,  cash:0,    combo:true,  color:"#a4ff3a", flash:[0.7,2.2,0.4], coins:22},
+  {key:"meh",    max:30,  name:"MEH",       pts:50,   sus:3,  cash:0,    combo:false, color:"#5ee7ff", flash:[0.3,1.0,2.2], coins:10},
+  {key:"coward", max:1e9, name:"COWARD",    pts:10,   sus:1,  cash:0,    combo:false, color:"#9a93c9", flash:[0.7,0.7,0.9], coins:4},
+];
+const PEAK_NAMES = ["PEAK PHIL","DOUBLE PHIL","TRIPLE PHIL","PHILHARMONIC","PHILTHY"];
+const SUS_DECAY_PER_ROUND = 4, SUS_KEEP_RELIEF = 30, SUS_GIFT_RELIEF = 15;
+// warn while there's still room for two PEAKs (gains grow with refund count)
+const susWarnAt = () => Math.min(70, 100 - 2*Math.round(GRADES[0].sus*(1 + (S.refunds+1)/25)));
+
+const Q_BUY = ["Ooh, this one looks refundable.","Added to library. Temporarily.","Day-one purchase. Day-one refund.","Can't wait to not keep this.","Steam: the world's best free trial."];
+const Q_REFUND = ["It just didn't click for me.","Gameplay loop got shallow at 1h59m.","Performance issues. (It ran fine.)","Accidental purchase. Again.","Not what I expected. (Exactly what I expected.)","I'll rebuy it on sale. I won't.","Loved every minute. All 119 of them.","The tutorial was the whole game, right?","Beat the first boss. Seen enough."];
+const Q_PERFECT = ["1:59. Art.","Frame-perfect. Gabe weeps.","That's the Phil Special.","Speedrunners wish they were me.","Not one second wasted.","Chef's kiss. Refund approved."];
+const Q_EARLY = ["Bailed early. Sloppy.","I left an hour on the table.","Rookie numbers. I'm better than this.","That wasn't even a full demo."];
+const Q_KEEP = ["No... NO... I own this now?","Guess I'm a fan of this game now.","My library grows. My soul shrinks.","Fine. It's a keeper. Ugh.","2.0 hrs on record. So is my shame."];
+const Q_LATE = ["I PRESSED IT. I SWEAR I PRESSED IT.","That was 1:59:59 on MY clock.","Lag. Definitely lag."];
+const Q_MID = [
+  ["Skipped the intro. And the lore. And the tutorial.","Nice graphics. Won't be seeing them again.","Muted the story. Can't get attached if I can't hear it."],
+  ["Halfway. Still in the starting area.","One hour in. Soundtrack slaps. Irrelevant.","Halfway to free."],
+  ["Uh oh. It's getting good. Stay strong, Phil.","Wait, there's a story? Don't get attached.","I'm not having fun. I'm NOT having fun."],
+];
+const Q_ITCH = ["My thumb is twitching.","Don't. Press. Space.","{who} will KNOW."];
+const Q_PANIC = ["Almost... almost...","Hold... hold...","Wait for it...","Steady, Phil..."];
+const Q_IDLE = ["Buy something. I need to feel something.","Wallet's hot. Let's shop.","Zero backlog. I refund it all.","Let's find something to not keep."];
+const Q_GIFT = ["Oh. Uh. Thanks.","A gift? I'll... play it. Fully.","Can't refund a gift. They'd know."];
+const Q_GIFT_FAIL = ["They saw that.","That was a GIFT, Phil.","Friendship refunded."];
+const Q_SUS = ["Valve is onto me. Let a cheap one run out.","Steam Support is typing...","Too many refunds. Time to 'keep' a $4.99 game."];
+const Q_START = ["Pick one. Any one. I'm not keeping it.","Two hours of fun, zero dollars spent. Let's go.","Refund window's open. So is my heart."];
+
+const REASONS_OK = ["Didn't click for me","Performance issues","Accidental purchase","Not as advertised","Won't run on my toaster","My dog bought it","Gameplay not fun","Found a typo in the credits"];
+const REASONS_TRAP = ["Actually, I love it ❤️","Best game I've ever played","I want to keep playing","Honestly? It's a 10/10"];
+const FRIENDS = [
+  ["Dave","🧔","yo phil you still have {g}? co-op tonight?"],
+  ["Mom","👩","Did the computer store give you your money back for the game thing?"],
+  ["Kev","🧢","phil didn't you already refund {g} in march"],
+  ["Dave","🧔","i gifted you a game last week. where did it go phil"],
+  ["Sarah","👩‍🦰","wanna play the new one? oh wait you refunded it lol"],
+  ["Kev","🧢","bro your profile says 1.9 hrs on 214 games"],
+  ["Steam Support","🛡️","Hi Phil! We'd love to chat about your refund history :)"],
+  ["Dave","🧔","do you even like video games"],
+  ["Sarah","👩‍🦰","phil it's 3am why are you buying Euro Truck Simulator"],
+];
+const GIFTERS = ["Dave","Kev","Sarah","Mom"];
+const ACH = [["Tourist","Reached the main menu"],["Commitment Issues","Refunded 10 games"],["Almost Invested","Played for 1 hour 55 minutes"],
+  ["Opened Settings","Changed nothing"],["Cinephile","Watched every cutscene"],["Skipped the Tutorial","…and the game"],["Pet the Dog","Seriously, that's it"],["Rage Quit","Alt+F4 pressed 3 times"]];
+
+// =====================================================================
+//  UTIL
+// =====================================================================
+const $ = s => document.querySelector(s);
+const rand = (a,b) => a + Math.random()*(b-a);
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const shuffle = a => { a=[...a]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const round2 = v => Math.round(v*100)/100;
+const money = v => "$" + v.toFixed(2);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const hashHue = s => { let h=0; for(const c of s) h=(h*31+c.codePointAt(0))>>>0; return h%360; };
+const easeOutCubic = k => 1 - Math.pow(1-k, 3);
+const easeInCubic = k => k*k*k;
+const easeOutBack = k => { const c=1.7; return 1 + (c+1)*Math.pow(k-1,3) + c*Math.pow(k-1,2); };
+const easeOutBounce = k => { const n=7.5625, d=2.75; if(k<1/d) return n*k*k; if(k<2/d) return n*(k-=1.5/d)*k+.75; if(k<2.5/d) return n*(k-=2.25/d)*k+.9375; return n*(k-=2.625/d)*k+.984375; };
+function fmt(t){
+  const s = Math.max(0, Math.floor(t*60));
+  return `${Math.floor(s/3600)}:${String(Math.floor(s%3600/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
+}
+function fmtLeft(t){ const s = Math.max(0, Math.round((LIMIT - t)*60)); return s >= 60 ? `${Math.floor(s/60)}m ${s%60}s left` : `${s}s left`; }
+
+// =====================================================================
+//  AUDIO: tiny synth + background synthwave loop
+// =====================================================================
+const LS = { get:k => { try{ return localStorage.getItem(k); }catch(e){ return null; } }, set:(k,v) => { try{ localStorage.setItem(k, v); }catch(e){} } };
+let AC = null, master = null, musicBus = null, muted = LS.get("philMuted") === "1";
+function ensureAC(){
+  if(AC) return AC;
+  try{
+    AC = new (window.AudioContext||window.webkitAudioContext)();
+    master = AC.createGain(); master.gain.value = muted ? 0 : 1; master.connect(AC.destination);
+    musicBus = AC.createGain(); musicBus.gain.value = 0.55; musicBus.connect(master);
+  }catch(e){ AC = null; }
+  return AC;
+}
+function tone(f, d=.08, type="square", v=.05, slide=0, when=0, bus=null){
+  if(!AC || muted) return;
+  const t = (when || AC.currentTime);
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t);
+  if(slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f+slide), t+d);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t+0.008); g.gain.exponentialRampToValueAtTime(0.0001, t+d);
+  o.connect(g).connect(bus || master); o.start(t); o.stop(t+d+.03);
+}
+function noise(d=.05, v=.03, when=0, hp=6000, bus=null){
+  if(!AC || muted) return;
+  const t = when || AC.currentTime, len = Math.floor(AC.sampleRate*d);
+  const buf = AC.createBuffer(1, len, AC.sampleRate), ch = buf.getChannelData(0);
+  for(let i=0;i<len;i++) ch[i] = (Math.random()*2-1) * (1 - i/len);
+  const src = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
+  src.buffer = buf; f.type = "highpass"; f.frequency.value = hp; g.gain.value = v;
+  src.connect(f).connect(g).connect(bus || master); src.start(t);
+}
+const later = (ms, fn) => setTimeout(fn, ms);
+// run-scoped timer: silently dropped if the player restarted or the run ended
+const laterRun = (ms, fn) => { const run = S; return setTimeout(() => { if(S === run && S.phase !== "over") fn(); }, ms); };
+const SFX = {
+  buy:     () => { tone(660,.07); later(60,()=>tone(990,.1)); },
+  cash:    () => { tone(1318,.09,"triangle",.08); later(70,()=>tone(1760,.2,"triangle",.08)); noise(.15,.03,0,5000); },
+  perfect: () => { [1046,1318,1568,2093,2637].forEach((f,i)=>later(i*55,()=>tone(f,.18,"triangle",.09))); noise(.4,.04,0,3000); },
+  meh:     () => tone(520,.12,"triangle",.06),
+  bad:     () => { tone(220,.4,"sawtooth",.07,-150); tone(110,.45,"square",.04,-50); },
+  click:   () => tone(700,.03,"square",.03),
+  ping:    () => { tone(880,.06,"sine",.08); later(80,()=>tone(1175,.1,"sine",.08)); },
+  tick:    () => { tone(1500,.025,"square",.025); },
+  pulse:   () => { tone(180,.12,"sine",.14,-60); tone(1200,.03,"square",.03); },
+  whoosh:  () => { noise(.25,.05,0,1200); },
+  drop:    () => { tone(140,.15,"sine",.12,-70); },
+  level:   () => [523,659,784,1046,1318,1568].forEach((f,i)=>later(i*70,()=>tone(f,.14,"square",.05))),
+  over:    () => [440,370,311,262,196].forEach((f,i)=>later(i*190,()=>tone(f,.35,"sawtooth",.06))),
+};
+const Music = {
+  on:false, next:0, step:0,
+  prog:[[57,60,64],[53,57,60],[48,52,55],[55,59,62]],   // Am F C G
+  start(){ if(!ensureAC()) return; if(AC.state === "suspended") AC.resume(); if(this.on) return; this.on = true; this.next = AC.currentTime + 0.1; },
+  tick(){
+    if(!this.on || !AC || muted) return;
+    if(this.next < AC.currentTime) this.next = AC.currentTime + 0.05;      // don't replay notes missed in a background tab
+    const duck = S.phase === "play" && S.game && !S.game.gifter && !has(S.game,"zone") && S.game.t >= 100;
+    if(duck !== this.ducked){ this.ducked = duck; musicBus.gain.setTargetAtTime(duck ? 0.12 : 0.55, AC.currentTime, 0.06); }
+    const bpm = 104 + Math.min(40, (S.level-1)*4), spb = 60/bpm/2;   // 8th notes
+    const hz = m => 440*Math.pow(2,(m-69)/12);
+    while(this.next < AC.currentTime + 0.2){
+      const bar = Math.floor(this.step/8)%4, s = this.step%8, ch = this.prog[bar];
+      tone(hz(ch[0]-24 + (s%2 ? 12 : 0)), spb*0.9, "sawtooth", 0.028, 0, this.next, musicBus);
+      tone(hz(ch[s%3]+12), spb*0.7, "triangle", 0.012, 0, this.next, musicBus);
+      if(s%2 === 1) noise(.03, .012, this.next, 8000, musicBus);
+      if(s === 0 || s === 4) tone(60, .18, "sine", 0.09, -30, this.next, musicBus);
+      this.next += spb; this.step++;
+    }
+  },
+};
+
+// =====================================================================
+//  THREE: renderer, scene, post
+// =====================================================================
+const canvas = $("#gl");
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, powerPreference:"high-performance"});
+const DPR = Math.min(devicePixelRatio || 1, 1.75);
+renderer.setPixelRatio(DPR);
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x12052a, 0.018);
+const camera = new THREE.PerspectiveCamera(40, innerWidth/innerHeight, 0.1, 400);
+const CAM_BASE = new THREE.Vector3(0, 2.3, 17), CAM_LOOK = new THREE.Vector3(0, 0.9, 0);
+camera.position.copy(CAM_BASE);
+
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.35;
+
+const composer = new EffectComposer(renderer);
+composer.setPixelRatio(DPR);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.65, 0.45, 1.0);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+// ---------- lights ----------
+scene.add(new THREE.HemisphereLight(0x9a7cff, 0x1a0628, 0.9));
+const key = new THREE.DirectionalLight(0xffffff, 2.2);
+key.position.set(4, 10, 8); key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+Object.assign(key.shadow.camera, {left:-12, right:12, top:12, bottom:-8, near:1, far:40});
+key.shadow.bias = -0.0005;
+scene.add(key);
+const pinkLight = new THREE.PointLight(0xff3dbb, 60, 30); pinkLight.position.set(-9, 5, -2.5); scene.add(pinkLight);
+const cyanLight = new THREE.PointLight(0x33d6ff, 60, 30); cyanLight.position.set(9.5, 5, -2.5); scene.add(cyanLight);
+const boxLight = new THREE.PointLight(0xffffff, 0, 12); boxLight.position.set(0, 1.4, 3); scene.add(boxLight);
+
+// ---------- sky ----------
+scene.add(new THREE.Mesh(new THREE.SphereGeometry(200, 32, 16), new THREE.ShaderMaterial({
+  side:THREE.BackSide, depthWrite:false, fog:false,
+  vertexShader:`varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+  fragmentShader:`varying vec3 vP; void main(){
+    float h = vP.y;
+    vec3 top = vec3(0.01,0.005,0.04), mid = vec3(0.09,0.02,0.2), hor = vec3(0.5,0.07,0.36);
+    vec3 c = mix(hor, mid, smoothstep(0.0, 0.16, h));
+    c = mix(c, top, smoothstep(0.16, 0.6, h));
+    c = mix(c, vec3(0.03,0.0,0.06), smoothstep(0.0, -0.15, h));
+    gl_FragColor = vec4(c, 1.0); }`,
+})));
+
+// stars
+{
+  const n = 900, pos = new Float32Array(n*3);
+  for(let i=0;i<n;i++){
+    const th = Math.random()*Math.PI*2, ph = Math.acos(rand(0.05, 1)), r = 180;
+    pos.set([r*Math.sin(ph)*Math.cos(th), r*Math.cos(ph), r*Math.sin(ph)*Math.sin(th)], i*3);
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  scene.add(new THREE.Points(g, new THREE.PointsMaterial({color:0xffffff, size:0.7, sizeAttenuation:true, fog:false, transparent:true, opacity:.8})));
+}
+
+// ---------- synthwave sun ----------
+const sunMat = new THREE.ShaderMaterial({
+  transparent:true, depthWrite:false, fog:false, uniforms:{uTime:{value:0}},
+  vertexShader:`varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+  fragmentShader:`varying vec2 vUv; uniform float uTime; void main(){
+    float y = vUv.y;
+    vec3 c = mix(vec3(0.75,0.06,0.42), vec3(1.05,0.55,0.12), smoothstep(0.1, 0.95, y));
+    float gap = smoothstep(0.5, 0.0, y) * 0.55;
+    float stripe = step(gap, fract(y*16.0 - uTime*0.12));
+    gl_FragColor = vec4(c, stripe); }`,
+});
+const sun = new THREE.Mesh(new THREE.CircleGeometry(17, 64), sunMat);
+sun.position.set(0, 1, -130);
+scene.add(sun);
+
+// ---------- mountains ----------
+{
+  const geo = new THREE.PlaneGeometry(320, 22, 120, 8), pos = geo.attributes.position;
+  const hash = i => { const s = Math.sin(i*127.1)*43758.5453; return s - Math.floor(s); };
+  for(let i=0;i<pos.count;i++){
+    const x = pos.getX(i), v = (pos.getY(i) + 11)/22;
+    const mask = 0.12 + 0.88*THREE.MathUtils.smoothstep(Math.abs(x), 14, 60);
+    const h = (Math.sin(x*0.11)*.5+.5)*12 + (Math.sin(x*0.31+1.3)*.5+.5)*6 + (Math.sin(x*0.9)*.5+.5)*2 + hash(i)*1.5;
+    pos.setY(i, v * h * mask * 1.3);
+  }
+  geo.computeVertexNormals();
+  const grp = new THREE.Group();
+  grp.add(new THREE.Mesh(geo, new THREE.MeshBasicMaterial({color:0x0a0318, fog:false})));
+  const wm = new THREE.MeshBasicMaterial({color:new THREE.Color(1.8,0.25,1.6), wireframe:true, transparent:true, opacity:.28, fog:false});
+  const wire = new THREE.Mesh(geo, wm); wire.position.z = 0.05; grp.add(wire);
+  grp.position.set(0, FLOOR_Y, -95);
+  scene.add(grp);
+}
+
+// ---------- neon grid floor ----------
+const floorMat = new THREE.ShaderMaterial({
+  uniforms:{uTime:{value:0}, uBeat:{value:0}},
+  vertexShader:`varying vec3 vW; void main(){ vec4 w = modelMatrix*vec4(position,1.0); vW = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }`,
+  fragmentShader:`varying vec3 vW; uniform float uTime; uniform float uBeat; void main(){
+    vec2 g = vW.xz * 0.5; g.y += uTime*0.8;
+    vec2 d = abs(fract(g - 0.5) - 0.5) / fwidth(g);
+    float line = 1.0 - min(min(d.x, d.y), 1.0);
+    float dist = length(vW.xz);
+    float fade = exp(-dist*0.03);
+    vec3 base = vec3(0.015,0.0,0.04);
+    vec3 neon = mix(vec3(1.6,0.2,1.5), vec3(0.3,1.2,2.0), smoothstep(-40.0, 10.0, vW.z));
+    vec3 c = base + neon * line * (0.35 + 0.65*fade) * (1.0 + uBeat*0.8);
+    c += vec3(0.25,0.03,0.25) * exp(-dist*0.08) * 0.35;
+    c = mix(c, vec3(0.2,0.03,0.16), smoothstep(40.0, 120.0, dist));
+    gl_FragColor = vec4(c, 1.0); }`,
+});
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), floorMat);
+floor.rotation.x = -Math.PI/2; floor.position.y = FLOOR_Y;
+scene.add(floor);
+const shadowCatcher = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.ShadowMaterial({opacity:.5}));
+shadowCatcher.rotation.x = -Math.PI/2; shadowCatcher.position.y = FLOOR_Y + 0.01; shadowCatcher.receiveShadow = true;
+scene.add(shadowCatcher);
+
+// ---------- floating dust ----------
+const dust = (() => {
+  const n = 500, pos = new Float32Array(n*3), spd = new Float32Array(n);
+  for(let i=0;i<n;i++){ pos.set([rand(-26,26), rand(FLOOR_Y, 14), rand(-30,10)], i*3); spd[i] = rand(0.1, 0.5); }
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  const c = document.createElement("canvas"); c.width = c.height = 64;
+  const x = c.getContext("2d"), gr = x.createRadialGradient(32,32,0,32,32,32);
+  gr.addColorStop(0,"rgba(255,255,255,1)"); gr.addColorStop(.3,"rgba(255,180,255,.5)"); gr.addColorStop(1,"rgba(255,255,255,0)");
+  x.fillStyle = gr; x.fillRect(0,0,64,64);
+  const m = new THREE.PointsMaterial({size:0.22, map:new THREE.CanvasTexture(c), transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, color:0xc9a8ff});
+  const p = new THREE.Points(g, m); scene.add(p);
+  return {p, pos, spd, n};
+})();
+
+// ---------- pedestal ----------
+const pedestal = new THREE.Group();
+{
+  const h = PED_TOP - 0.14 - FLOOR_Y;
+  const col = new THREE.Mesh(new THREE.CylinderGeometry(1.45, 1.85, h, 64),
+    new THREE.MeshPhysicalMaterial({color:0x1a1433, metalness:.85, roughness:.28, clearcoat:.6}));
+  col.position.y = FLOOR_Y + h/2; col.castShadow = true; col.receiveShadow = true;
+  pedestal.add(col);
+  const cap = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 0.14, 64), new THREE.MeshPhysicalMaterial({color:0x2a2150, metalness:.9, roughness:.2}));
+  cap.position.y = FLOOR_Y + h + 0.07; pedestal.add(cap);
+  pedestal.userData.top = FLOOR_Y + h + 0.14;
+}
+const neonMat = c => { const m = new THREE.MeshBasicMaterial({color:c, toneMapped:false}); return m; };
+const pedRingTop = new THREE.Mesh(new THREE.TorusGeometry(1.6, 0.045, 12, 120), neonMat(new THREE.Color(0.4,1.8,3.2)));
+pedRingTop.rotation.x = Math.PI/2; pedRingTop.position.y = pedestal.userData.top - 0.02; pedestal.add(pedRingTop);
+const pedRingBot = new THREE.Mesh(new THREE.TorusGeometry(1.86, 0.05, 12, 120), neonMat(new THREE.Color(2.6,0.4,2.2)));
+pedRingBot.rotation.x = Math.PI/2; pedRingBot.position.y = FLOOR_Y + 0.08; pedestal.add(pedRingBot);
+const PED_BASE_COLOR = new THREE.Color(0.4,1.8,3.2);
+scene.add(pedestal);
+
+// light beam behind the box
+const beamMat = new THREE.ShaderMaterial({
+  transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, side:THREE.BackSide, uniforms:{uColor:{value:new THREE.Color(0.2,0.5,1.0)}, uTime:{value:0}},
+  vertexShader:`varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+  fragmentShader:`varying vec2 vUv; uniform vec3 uColor; uniform float uTime; void main(){
+    float a = pow(1.0 - vUv.y, 2.5) * 0.16 * (0.85 + 0.15*sin(uTime*3.0 + vUv.y*10.0));
+    gl_FragColor = vec4(uColor * a, 1.0); }`,
+});
+const beam = new THREE.Mesh(new THREE.CylinderGeometry(1.55, 1.55, 6, 48, 1, true), beamMat);
+beam.position.y = pedestal.userData.top + 3;
+scene.add(beam);
+
+// ---------- the refund clock ring ----------
+const ringMat = new THREE.ShaderMaterial({
+  // premultiplied output: the band is opaque colour, the glow is purely additive
+  transparent:true, depthWrite:false, blending:THREE.CustomBlending,
+  blendSrc:THREE.OneFactor, blendDst:THREE.OneMinusSrcAlphaFactor, blendSrcAlpha:THREE.OneFactor, blendDstAlpha:THREE.OneMinusSrcAlphaFactor,
+  uniforms:{uProgress:{value:0}, uTime:{value:0}, uHidden:{value:0}, uPulse:{value:0}, uFlash:{value:0},
+    uFlashColor:{value:new THREE.Color(1,1,1)}, uIdle:{value:1}, uDanger:{value:0}},
+  vertexShader:`varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+  fragmentShader:`
+    varying vec2 vUv;
+    uniform float uProgress, uTime, uHidden, uPulse, uFlash, uIdle, uDanger;
+    uniform vec3 uFlashColor;
+    #define TAU 6.28318530718
+    float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
+    void main(){
+      vec2 p = vUv*2.0 - 1.0;
+      float r = length(p);
+      float a = atan(p.x, p.y); if(a < 0.0) a += TAU;
+      float f = a / TAU;                       // 0 at 12 o'clock, clockwise
+      float inner = 0.785, outer = 0.925, mid = (inner+outer)*0.5;
+      float aa = fwidth(r)*1.2;
+      float band = smoothstep(inner-aa, inner+aa, r) * (1.0 - smoothstep(outer-aa, outer+aa, r));
+      float zGood = step(1.0-15.0/120.0, f), zGreat = step(1.0-6.0/120.0, f), zPeak = step(1.0-2.0/120.0, f);
+      vec3 track = vec3(0.02,0.02,0.07);
+      track = mix(track, vec3(0.01,0.07,0.16), zGood);
+      // unfilled zones: dim hatching so they read as "empty but marked"
+      float hatch = 0.55 + 0.45*step(0.5, fract(f*240.0 + r*9.0));
+      track = mix(track, vec3(0.30,0.15,0.01)*hatch*(1.0 + 1.6*uIdle), zGreat);
+      track = mix(track, vec3(0.38,0.03,0.28)*hatch*(1.0 + 1.6*uIdle), zPeak);
+      float prog = clamp(uProgress, 0.0, 1.0);
+      float filled = step(f, prog);
+      float hid = uHidden * step(0.5, f);
+      vec3 fillCol = mix(vec3(0.02,0.12,0.7), vec3(0.04,0.55,1.0), f);
+      fillCol *= 0.8 + 0.2*sin(f*90.0 - uTime*9.0);
+      fillCol *= 1.0 - 0.45*step(0.01, uDanger);          // dim the spent arc in the finale so gold/pink pop
+      fillCol = mix(fillCol, vec3(1.25,0.6,0.03), zGreat);
+      fillCol = mix(fillCol, vec3(1.5,0.12,1.1), zPeak);
+      vec3 ringCol = mix(track, fillCol, filled);
+      if(hid > 0.5){
+        float scan = 0.5 + 0.5*sin(r*140.0 - uTime*6.0);
+        float drift = 0.5 + 0.5*sin(f*TAU*9.0 - uTime*2.3) * sin(f*TAU*4.0 + uTime*1.1);
+        ringCol = track*0.3 + vec3(0.22,0.14,0.5) * (0.25 + 0.75*drift) * (0.7 + 0.3*scan);
+      }
+      ringCol += uIdle * vec3(0.2,0.45,1.2) * pow(0.5+0.5*sin((f - uTime*0.2)*TAU*2.0), 10.0);
+      vec3 col = ringCol * band;
+      float cover = band;
+      // tick marks every 10 minutes, just outside the ring
+      float tr = smoothstep(0.93, 0.94, r) * (1.0 - smoothstep(0.98, 0.99, r));
+      float dt = abs(fract(f*12.0 + 0.5) - 0.5) / 12.0 * TAU * r;
+      float tick = 1.0 - smoothstep(0.005, 0.011, dt);
+      col += vec3(0.35,0.45,0.9) * tick * tr * (1.0 + uPulse*5.0);
+      cover = max(cover, tick * tr);
+      // the 2:00:00 deadline marker
+      float d0 = min(f, 1.0-f) * TAU * r;
+      float lim = (1.0 - smoothstep(0.01, 0.02, d0)) * smoothstep(0.75, 0.77, r) * (1.0 - smoothstep(0.985, 0.995, r));
+      col += vec3(3.0,0.35,0.5) * lim;
+      cover = max(cover, lim);
+      // glowing head at the current time
+      float ha = prog*TAU; vec2 hp = vec2(sin(ha), cos(ha)) * mid;
+      float headVis = (1.0 - uHidden*step(0.5, prog)) * step(0.0005, uProgress) * (1.0 - uIdle);
+      col += vec3(1.6,2.2,3.0) * exp(-length(p-hp)*60.0) * headVis * 0.8;
+      // crisp needle across the band at the current time
+      float hd = abs(fract(f - prog + 0.5) - 0.5) * TAU * r;
+      float needle = (1.0 - smoothstep(0.006, 0.012, hd)) * smoothstep(inner-0.04, inner, r) * (1.0 - smoothstep(outer, outer+0.04, r));
+      col = mix(col, vec3(2.2), needle * headVis); cover = max(cover, needle * headVis);
+      float glow = exp(-abs(r-mid)*13.0);
+      col += vec3(0.05,0.08,0.28) * glow * (1.0 - band) * (1.0 + uPulse*6.0);
+      col = mix(col, uFlashColor, band*min(1.0, uFlash*0.4)) + uFlashColor*glow*0.3*uFlash;
+      col += vec3(0.9,0.05,0.15) * glow * (1.0 - band) * uDanger * 3.0 * (0.5 + 0.5*sin(uTime*20.0));
+      col += vec3(0.025,0.015,0.07) * (1.0 - smoothstep(0.0, inner, r));
+      gl_FragColor = vec4(col, cover);
+    }`,
+});
+const ring = new THREE.Mesh(new THREE.PlaneGeometry(8.2, 8.2), ringMat);
+ring.position.set(0, CENTER.y, -1.3);
+scene.add(ring);
+// dark backing band so the additive ring colours stay saturated against the bright sky
+const ringBack = new THREE.Mesh(new THREE.PlaneGeometry(8.2, 8.2), new THREE.ShaderMaterial({
+  transparent:true, depthWrite:false,
+  vertexShader:`varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+  fragmentShader:`varying vec2 vUv; void main(){
+    float r = length(vUv*2.0 - 1.0);
+    float a = smoothstep(0.74, 0.77, r) * (1.0 - smoothstep(0.995, 1.0, r)) * 0.72;
+    a = max(a, (1.0 - smoothstep(0.0, 0.78, r)) * 0.28);
+    gl_FragColor = vec4(0.02, 0.005, 0.05, a); }`,
+}));
+ringBack.position.set(0, CENTER.y, -1.34);
+ringBack.renderOrder = -1;
+scene.add(ringBack);
+function ringPoint(frac, radius=3.4){ const a = frac*Math.PI*2; return new THREE.Vector3(ring.position.x + Math.sin(a)*radius, ring.position.y + Math.cos(a)*radius, ring.position.z); }
+
+// =====================================================================
+//  GAME BOX MESHES (procedural cover art on canvas)
+// =====================================================================
+const BOX_GEO = new THREE.BoxGeometry(2.0, 2.8, 0.32);
+// Boxes cast shadows through a map-less stand-in: three r170's shadow depth material keeps a pointer to the
+// caster's .map, which re-uploads disposed cover textures every round (a steady GPU leak).
+const SHADOW_ONLY_MAT = new THREE.MeshBasicMaterial({colorWrite:false, depthWrite:false});
+const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+function canvasTex(c){ const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return t; }
+function wrapLines(x, text, maxW){
+  const words = text.split(" "), lines = []; let cur = "";
+  for(const w of words){ const t = cur ? cur+" "+w : w; if(x.measureText(t).width > maxW && cur){ lines.push(cur); cur = w; } else cur = t; }
+  if(cur) lines.push(cur); return lines;
+}
+function coverCanvas(card){
+  const c = document.createElement("canvas"); c.width = 512; c.height = 716;
+  const x = c.getContext("2d"), h = hashHue(card.title);
+  const g = x.createLinearGradient(0,0,512,716);
+  g.addColorStop(0, `hsl(${h},75%,52%)`); g.addColorStop(.55, `hsl(${(h+35)%360},70%,28%)`); g.addColorStop(1, `hsl(${(h+70)%360},80%,10%)`);
+  x.fillStyle = g; x.fillRect(0,0,512,716);
+  x.save(); x.translate(256,310);
+  for(let i=0;i<18;i++){ x.rotate(Math.PI/9); x.fillStyle = `hsla(${(h+20)%360},100%,80%,.07)`; x.beginPath(); x.moveTo(0,0); x.lineTo(700,-70); x.lineTo(700,70); x.fill(); }
+  x.restore();
+  const rg = x.createRadialGradient(256,310,10,256,310,220); rg.addColorStop(0,"rgba(255,255,255,.35)"); rg.addColorStop(1,"rgba(255,255,255,0)");
+  x.fillStyle = rg; x.fillRect(0,0,512,716);
+  x.textAlign = "center"; x.textBaseline = "middle";
+  x.font = `230px ${EMOJI_FONT}`; x.shadowColor = "rgba(0,0,0,.55)"; x.shadowBlur = 40; x.shadowOffsetY = 14;
+  x.fillText(card.emoji, 256, 310);
+  x.shadowBlur = 0; x.shadowOffsetY = 0;
+  const bg = x.createLinearGradient(0,470,0,716); bg.addColorStop(0,"rgba(0,0,0,0)"); bg.addColorStop(1,"rgba(0,0,0,.9)");
+  x.fillStyle = bg; x.fillRect(0,440,512,276);
+  let size = 60, lines;
+  do { x.font = `900 ${size}px "Russo One", Impact, sans-serif`; lines = wrapLines(x, card.title.toUpperCase(), 460); size -= 4; } while(lines.length > 3 && size > 26);
+  const lh = size*1.08; let y = 680 - (lines.length-1)*lh;
+  x.fillStyle = "#fff"; x.shadowColor = `hsl(${h},100%,55%)`; x.shadowBlur = 18;
+  for(const l of lines){ x.fillText(l, 256, y); y += lh; }
+  x.shadowBlur = 0;
+  x.fillStyle = "#12091f"; x.fillRect(0,0,512,54);
+  x.fillStyle = "#5ee7ff"; x.font = '800 26px "Rajdhani", sans-serif'; x.textAlign = "left"; x.fillText("PC  ·  STEAM", 20, 29);
+  x.textAlign = "right"; x.fillStyle = "#ffd24a"; x.fillText("REFUNDABLE*", 492, 29);
+  return c;
+}
+function spineCanvas(card){
+  const c = document.createElement("canvas"); c.width = 96; c.height = 716;
+  const x = c.getContext("2d"), h = hashHue(card.title);
+  const g = x.createLinearGradient(0,0,0,716); g.addColorStop(0,`hsl(${h},70%,38%)`); g.addColorStop(1,`hsl(${(h+70)%360},80%,12%)`);
+  x.fillStyle = g; x.fillRect(0,0,96,716);
+  x.save(); x.translate(48,358); x.rotate(Math.PI/2);
+  x.fillStyle = "#fff"; x.textAlign = "center"; x.textBaseline = "middle"; x.font = '900 34px "Russo One", Impact, sans-serif';
+  x.fillText(card.title.toUpperCase().slice(0,26), 0, 0);
+  x.restore();
+  return c;
+}
+function backCanvas(card){
+  const c = document.createElement("canvas"); c.width = 512; c.height = 716;
+  const x = c.getContext("2d"), h = hashHue(card.title);
+  x.fillStyle = `hsl(${(h+70)%360},50%,10%)`; x.fillRect(0,0,512,716);
+  for(let i=0;i<3;i++){ x.fillStyle = `hsl(${(h+i*40)%360},60%,${30+i*8}%)`; x.fillRect(30+i*155, 60, 140, 100); }
+  x.fillStyle = "#fff"; x.font = '700 30px "Rajdhani", sans-serif'; x.fillText("An unforgettable experience*", 30, 220);
+  x.font = '600 22px "Rajdhani", sans-serif'; x.fillStyle = "#bbb";
+  ["* for up to 1 hour 59 minutes","Refundable within 14 days","and 2 hours of playtime.","Rated R for Refundable."].forEach((l,i) => x.fillText(l, 30, 270 + i*34));
+  x.fillStyle = "#fff"; for(let i=0;i<40;i++) x.fillRect(300 + i*5, 600, (i*7%3)+1, 80);
+  return c;
+}
+function giftCanvas(front, card, gifter){
+  const c = document.createElement("canvas"); c.width = 512; c.height = 716;
+  const x = c.getContext("2d");
+  x.fillStyle = "#c2187a"; x.fillRect(0,0,512,716);
+  for(let yy=0; yy<716; yy+=64) for(let xx=(yy/64%2)*32; xx<512; xx+=64){ x.fillStyle = "rgba(255,255,255,.18)"; x.beginPath(); x.arc(xx,yy,10,0,7); x.fill(); }
+  x.fillStyle = "#ffd24a"; x.fillRect(226,0,60,716); x.fillRect(0,328,512,60);
+  if(front){
+    x.save(); x.translate(256,520); x.rotate(-0.06);
+    x.fillStyle = "#fff8e6"; x.fillRect(-190,-95,380,190);
+    x.fillStyle = "#3a1030"; x.textAlign = "center"; x.textBaseline = "middle";
+    x.font = '700 30px "Rajdhani", sans-serif'; x.fillText(`To: Phil   From: ${gifter}`, 0, -52);
+    x.font = `64px ${EMOJI_FONT}`; x.fillText(card.emoji, -140, 18);
+    let size = 36, lines; do { x.font = `900 ${size}px "Russo One", Impact, sans-serif`; lines = wrapLines(x, card.title, 250); size -= 3; } while(lines.length > 2 && size > 18);
+    lines.forEach((l,i) => x.fillText(l, 30, 10 + (i - (lines.length-1)/2)*size*1.1));
+    x.font = '700 22px "Rajdhani", sans-serif'; x.fillStyle = "#c2187a"; x.fillText("(please don't refund this)", 0, 70);
+    x.restore();
+  }
+  return c;
+}
+function makeBox(card, gifter){
+  const group = new THREE.Group();
+  const phys = map => new THREE.MeshPhysicalMaterial({map, roughness:.42, metalness:.05, clearcoat:1, clearcoatRoughness:.12});
+  let mats;
+  if(gifter){
+    const side = phys(canvasTex(giftCanvas(false))), front = phys(canvasTex(giftCanvas(true, card, gifter)));
+    mats = [side, side, side, side, front, side];
+  } else {
+    const spine = phys(canvasTex(spineCanvas(card)));
+    const top = new THREE.MeshPhysicalMaterial({color:new THREE.Color().setHSL(hashHue(card.title)/360,.6,.2), roughness:.4, clearcoat:1});
+    mats = [spine, spine, top, top, phys(canvasTex(coverCanvas(card))), phys(canvasTex(backCanvas(card)))];
+  }
+  const mesh = new THREE.Mesh(BOX_GEO, mats);
+  group.add(mesh);
+  const shadowProxy = new THREE.Mesh(BOX_GEO, SHADOW_ONLY_MAT);
+  shadowProxy.castShadow = true;
+  group.add(shadowProxy);
+  if(gifter){
+    const bowMat = new THREE.MeshPhysicalMaterial({color:0xffd24a, roughness:.3, metalness:.3, clearcoat:1});
+    for(const s of [-1, 1]){
+      const loop = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.09, 12, 32), bowMat);
+      loop.position.set(s*0.3, 1.62, 0.02); loop.rotation.set(0, 0, s*0.45); loop.scale.set(1, .72, 1);
+      group.add(loop);
+    }
+    const knot = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 12), bowMat); knot.position.set(0, 1.55, 0.05); group.add(knot);
+  }
+  group.userData.hue = gifter ? 320 : hashHue(card.title);
+  group.userData.mats = mats;
+  return group;
+}
+function disposeBox(g){
+  if(!g) return;
+  g.removeFromParent();
+  g.traverse(o => {
+    if(!o.isMesh) return;
+    if(o.geometry !== BOX_GEO) o.geometry.dispose();
+    (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => { if(m === SHADOW_ONLY_MAT) return; if(m.map) m.map.dispose(); m.dispose(); });
+  });
+}
+
+// =====================================================================
+//  PHIL (3D)
+// =====================================================================
+const phil = new THREE.Group();
+const faceCanvas = document.createElement("canvas"); faceCanvas.width = faceCanvas.height = 512;
+const faceTex = canvasTex(faceCanvas);
+{
+  const skin = new THREE.MeshPhysicalMaterial({color:0xf2c29b, roughness:.55, clearcoat:.2, sheen:.5});
+  const hoodie = new THREE.MeshPhysicalMaterial({color:0x2f6ae0, roughness:.8, sheen:1, sheenColor:new THREE.Color(0x88aaff)});
+  const dark = new THREE.MeshPhysicalMaterial({color:0x151520, roughness:.35, metalness:.4, clearcoat:1});
+  const hairM = new THREE.MeshPhysicalMaterial({color:0x5b3a1e, roughness:.7, sheen:1, sheenColor:new THREE.Color(0xaa7744)});
+  const add = (geo, mat, x, y, z, parent=phil) => { const m = new THREE.Mesh(geo, mat); m.position.set(x,y,z); m.castShadow = true; parent.add(m); return m; };
+
+  add(new THREE.CapsuleGeometry(0.62, 0.8, 8, 20), hoodie, 0, 1.05, 0);
+  const hood = add(new THREE.TorusGeometry(0.5, 0.14, 10, 30), hoodie, 0, 1.78, -0.05); hood.rotation.x = Math.PI/2.2;
+  const armGeo = new THREE.CapsuleGeometry(0.16, 0.55, 6, 12);
+  const armL = add(armGeo, hoodie, -0.52, 1.25, 0.32); armL.rotation.set(1.1, 0, 0.5);
+  const armR = add(armGeo, hoodie,  0.52, 1.25, 0.32); armR.rotation.set(1.1, 0, -0.5);
+  const pad = add(new THREE.BoxGeometry(0.8, 0.14, 0.38), dark, 0, 1.12, 0.72); pad.rotation.x = -0.35;
+  for(const [bx,c] of [[0.24,0x33ff99],[0.32,0xff4fd8],[-0.26,0x5ee7ff]]){
+    const b = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 8), neonMat(new THREE.Color(c).multiplyScalar(2.5)));
+    b.position.set(bx, 0.08, 0.02); pad.add(b);
+  }
+  const head = new THREE.Group(); head.position.set(0, 2.42, 0); phil.add(head);
+  add(new THREE.SphereGeometry(0.72, 40, 30), skin, 0, 0, 0, head);
+  const face = new THREE.Mesh(new THREE.SphereGeometry(0.724, 40, 30, Math.PI/2 - 1.0, 2.0, Math.PI/2 - 0.8, 1.6),
+    new THREE.MeshStandardMaterial({map:faceTex, transparent:true, roughness:.6}));
+  head.add(face);
+  const hair = add(new THREE.SphereGeometry(0.77, 36, 20, 0, Math.PI*2, 0, 1.2), hairM, 0, 0.04, -0.05, head); hair.rotation.x = -0.42;
+  const fringe = add(new THREE.SphereGeometry(0.3, 16, 12), hairM, 0.18, 0.55, 0.42, head); fringe.scale.set(1.5, .55, .8);
+  const band = add(new THREE.TorusGeometry(0.8, 0.065, 10, 40, Math.PI), dark, 0, 0.02, -0.02, head);
+  const cupGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.18, 24);
+  for(const s of [-1,1]){
+    const cup = add(cupGeo, dark, s*0.78, 0, 0, head); cup.rotation.z = Math.PI/2;
+    const glow = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.025, 8, 30), neonMat(new THREE.Color(2.8,0.4,2.4)));
+    glow.position.set(s*0.88, 0, 0); glow.rotation.y = Math.PI/2; head.add(glow);
+  }
+  phil.userData = {head, armL, armR, jump:0, jumpV:0, spin:0, squash:0, shakeT:0, face:null};
+}
+phil.position.set(-7.3, FLOOR_Y, 1.4);
+phil.rotation.y = 0.55;
+phil.scale.setScalar(1.35);
+scene.add(phil);
+
+function drawFace(expr){
+  if(phil.userData.face === expr) return;
+  phil.userData.face = expr;
+  const x = faceCanvas.getContext("2d");
+  x.clearRect(0,0,512,512);
+  const eyeY = 236, ex = [182, 330];
+  x.lineCap = "round"; x.lineJoin = "round";
+  // cheeks
+  if(expr === "happy" || expr === "smug"){ x.fillStyle = "rgba(255,110,130,.35)"; for(const cx of [150,362]){ x.beginPath(); x.ellipse(cx, 318, 34, 20, 0, 0, 7); x.fill(); } }
+  // eyes
+  x.fillStyle = "#1b1020"; x.strokeStyle = "#1b1020"; x.lineWidth = 12;
+  for(const cx of ex){
+    if(expr === "happy"){ x.beginPath(); x.arc(cx, eyeY+8, 18, Math.PI*1.1, Math.PI*1.9); x.stroke(); }
+    else if(expr === "shock" || expr === "panic"){ x.fillStyle = "#fff"; x.beginPath(); x.arc(cx, eyeY, 22, 0, 7); x.fill(); x.fillStyle = "#1b1020"; x.beginPath(); x.arc(cx, eyeY, 9, 0, 7); x.fill(); }
+    else if(expr === "smug"){ x.beginPath(); x.ellipse(cx, eyeY+4, 15, 9, 0, 0, 7); x.fill(); }
+    else { x.beginPath(); x.arc(cx, eyeY, 14, 0, 7); x.fill(); x.fillStyle = "#fff"; x.beginPath(); x.arc(cx+5, eyeY-5, 4, 0, 7); x.fill(); x.fillStyle = "#1b1020"; }
+  }
+  // glasses
+  x.strokeStyle = "#141018"; x.lineWidth = 11; x.fillStyle = "rgba(180,230,255,.14)";
+  for(const cx of ex){ x.beginPath(); x.roundRect(cx-56, eyeY-40, 112, 80, 18); x.fill(); x.stroke(); }
+  x.beginPath(); x.moveTo(ex[0]+56, eyeY-6); x.quadraticCurveTo(256, eyeY-22, ex[1]-56, eyeY-6); x.stroke();
+  // brows
+  x.strokeStyle = "#4a2c14"; x.lineWidth = 13;
+  const brow = {smug:[[-10,4],[6,-6]], happy:[[-4,-8],[4,-8]], panic:[[10,-4],[-10,-4]], sad:[[14,-2],[-14,-2]], shock:[[-4,-18],[4,-18]], neutral:[[0,0],[0,0]]}[expr] || [[0,0],[0,0]];
+  ex.forEach((cx,i) => { const [a,b] = brow[i]; x.beginPath(); x.moveTo(cx-44, eyeY-62 + (i ? b : a)); x.lineTo(cx+44, eyeY-62 + (i ? a : b)); x.stroke(); });
+  // mouth
+  x.strokeStyle = "#6b1f18"; x.fillStyle = "#6b1f18"; x.lineWidth = 12;
+  x.beginPath();
+  if(expr === "happy"){ x.moveTo(196, 330); x.quadraticCurveTo(256, 420, 316, 330); x.closePath(); x.fill(); x.fillStyle = "#ff7d8d"; x.beginPath(); x.ellipse(256, 372, 26, 12, 0, 0, 7); x.fill(); }
+  else if(expr === "smug"){ x.moveTo(210, 352); x.quadraticCurveTo(270, 380, 314, 330); x.stroke(); }
+  else if(expr === "sad"){ x.moveTo(206, 372); x.quadraticCurveTo(256, 330, 306, 372); x.stroke(); }
+  else if(expr === "shock"){ x.ellipse(256, 360, 24, 32, 0, 0, 7); x.fill(); }
+  else if(expr === "panic"){ x.moveTo(206, 356); for(let i=0;i<=6;i++) x.lineTo(206 + i*17, 356 + (i%2 ? -12 : 12)); x.stroke(); }
+  else { x.moveTo(220, 356); x.lineTo(292, 356); x.stroke(); }
+  // sweat
+  if(expr === "panic" || expr === "shock"){ x.fillStyle = "#7fd3ff"; x.beginPath(); x.moveTo(430, 120); x.quadraticCurveTo(456, 170, 430, 186); x.quadraticCurveTo(404, 170, 430, 120); x.fill(); }
+  faceTex.needsUpdate = true;
+}
+drawFace("smug");
+
+// =====================================================================
+//  SHELF OF SHAME (kept games live here, in 3D)
+// =====================================================================
+const shelf = new THREE.Group();
+{
+  const frameM = new THREE.MeshPhysicalMaterial({color:0x221a3e, metalness:.7, roughness:.35, clearcoat:.5});
+  const W = 4.2;
+  for(const y of [0.05, 1.55, 3.05]){
+    const p = new THREE.Mesh(new THREE.BoxGeometry(W, 0.1, 0.9), frameM); p.position.set(0, y, 0); p.castShadow = p.receiveShadow = true; shelf.add(p);
+    const strip = new THREE.Mesh(new THREE.BoxGeometry(W, 0.03, 0.03), neonMat(new THREE.Color(2.4,0.35,2.2))); strip.position.set(0, y+0.02, 0.46); shelf.add(strip);
+  }
+  for(const x of [-W/2, W/2]){ const s = new THREE.Mesh(new THREE.BoxGeometry(0.1, 3.1, 0.9), frameM); s.position.set(x, 1.55, 0); s.castShadow = true; shelf.add(s); }
+  const back = new THREE.Mesh(new THREE.PlaneGeometry(W, 3.1), new THREE.MeshStandardMaterial({color:0x120a24, roughness:.9})); back.position.set(0, 1.55, -0.44); shelf.add(back);
+  const c = document.createElement("canvas"); c.width = 1024; c.height = 160;
+  const x = c.getContext("2d"); x.textAlign = "center"; x.textBaseline = "middle";
+  x.font = '64px "Russo One", Impact, sans-serif'; x.shadowColor = "#ff4fd8"; x.shadowBlur = 30; x.fillStyle = "#ffd6f6";
+  x.fillText("PHIL'S ACTUAL LIBRARY", 512, 60);
+  x.font = '600 36px "Rajdhani", sans-serif'; x.shadowBlur = 10; x.fillStyle = "#c9a8ff"; x.fillText("games he accidentally owns", 512, 125);
+  const signMat = new THREE.MeshBasicMaterial({map:canvasTex(c), transparent:true, toneMapped:false});
+  signMat.color.setScalar(1.6);
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(4.4, 0.69), signMat); sign.position.set(0, 3.7, 0); shelf.add(sign);
+}
+shelf.position.set(7.6, FLOOR_Y, 0.2);
+shelf.rotation.y = -0.5;
+scene.add(shelf);
+const shelfItems = [];
+function shelfSlot(n){
+  const perRow = 6, row = Math.floor(n/perRow), col = n % perRow;
+  if(row < 2) return {pos:new THREE.Vector3(-1.72 + col*0.69, 0.1 + row*1.5 + 0.44*1.0, 0.05), rot:new THREE.Euler(0, 0, 0)};
+  // overflow: a sad pile on the floor in front of the shelf
+  return {pos:new THREE.Vector3(rand(-1.8,1.8), 0.1 + (n-12)*0.03 + 0.07, rand(0.9,2.0)), rot:new THREE.Euler(-Math.PI/2, 0, rand(-Math.PI, Math.PI))};
+}
+const SHELF_SCALE = 0.31;
+
+// =====================================================================
+//  PARTICLES: shards + coins (instanced)
+// =====================================================================
+const dummy = new THREE.Object3D();
+function makePool(geo, mat, n){
+  const mesh = new THREE.InstancedMesh(geo, mat, n);
+  mesh.frustumCulled = false; mesh.castShadow = true;
+  const items = Array.from({length:n}, () => ({on:false, p:new THREE.Vector3(), v:new THREE.Vector3(), r:new THREE.Vector3(), w:new THREE.Vector3(), life:0, max:1, s:1}));
+  dummy.scale.setScalar(0); dummy.updateMatrix();
+  for(let i=0;i<n;i++) mesh.setMatrixAt(i, dummy.matrix);
+  scene.add(mesh);
+  return {mesh, items, n, cursor:0};
+}
+const shards = makePool(new THREE.BoxGeometry(0.2, 0.2, 0.06), new THREE.MeshBasicMaterial({toneMapped:false}), 220);
+shards.mesh.setColorAt(0, new THREE.Color(1,1,1));
+const coins = makePool(new THREE.CylinderGeometry(0.17, 0.17, 0.045, 24),
+  new THREE.MeshPhysicalMaterial({color:0xffc83d, metalness:1, roughness:.16, emissive:0xff9a00, emissiveIntensity:.22, envMap:scene.environment, envMapIntensity:2.5, clearcoat:1}), 140);
+function emit(pool, cfg){
+  const it = pool.items[pool.cursor]; pool.cursor = (pool.cursor + 1) % pool.n;
+  it.on = true; it.p.copy(cfg.p); it.v.copy(cfg.v); it.r.set(rand(0,6),rand(0,6),rand(0,6)); it.w.set(rand(-9,9),rand(-9,9),rand(-9,9));
+  it.life = it.max = cfg.life || rand(1.4, 2.2); it.s = cfg.s || 1;
+  pool.mesh.visible = true;
+  if(cfg.color) pool.mesh.setColorAt(pool.items.indexOf(it), cfg.color);
+}
+function stepPool(pool, dt){
+  if(!pool.mesh.visible) return;
+  let alive = 0;
+  for(let i=0;i<pool.n;i++){
+    const it = pool.items[i];
+    if(!it.on) continue;
+    alive++;
+    it.life -= dt;
+    if(it.life <= 0){ it.on = false; dummy.scale.setScalar(0); dummy.updateMatrix(); pool.mesh.setMatrixAt(i, dummy.matrix); continue; }
+    it.v.y -= 11*dt;
+    it.p.addScaledVector(it.v, dt);
+    if(it.p.y < FLOOR_Y + 0.05){ it.p.y = FLOOR_Y + 0.05; it.v.y *= -0.42; it.v.x *= 0.7; it.v.z *= 0.7; it.w.multiplyScalar(0.6); }
+    it.r.addScaledVector(it.w, dt);
+    const fade = Math.min(1, it.life/0.4);
+    dummy.position.copy(it.p); dummy.rotation.set(it.r.x, it.r.y, it.r.z); dummy.scale.setScalar(it.s*fade); dummy.updateMatrix();
+    pool.mesh.setMatrixAt(i, dummy.matrix);
+  }
+  pool.mesh.instanceMatrix.needsUpdate = true;
+  if(pool.mesh.instanceColor) pool.mesh.instanceColor.needsUpdate = true;
+  if(!alive) pool.mesh.visible = false;
+}
+function burstShards(center, hue, n, spread=1){
+  const col = new THREE.Color();
+  for(let i=0;i<n;i++){
+    col.setHSL(((hue + rand(-30,30)) % 360 + 360) % 360 / 360, 1, .55).multiplyScalar(rand(1.1, 2.4));
+    if(Math.random() < .15) col.setRGB(2.5,2.5,2.5);
+    const p = center.clone().add(new THREE.Vector3(rand(-1,1), rand(-1.4,1.4), rand(-.15,.15)));
+    const v = p.clone().sub(center).normalize().multiplyScalar(rand(3,9)*spread).add(new THREE.Vector3(0, rand(2,6), rand(1,4)));
+    emit(shards, {p, v, color:col.clone(), s:rand(.6,1.4)});
+  }
+}
+function burstCoins(center, n){
+  for(let i=0;i<n;i++){
+    const v = new THREE.Vector3(rand(-4,4), rand(6,12), rand(0.5,4.5));
+    emit(coins, {p:center.clone().add(new THREE.Vector3(rand(-.6,.6), rand(-.6,.6), .3)), v, life:rand(1.6,2.6), s:rand(.8,1.25)});
+  }
+}
+
+// refund shockwave: a neon ring that races out across the grid floor
+const shock = new THREE.Mesh(new THREE.RingGeometry(0.8, 1.0, 128), new THREE.MeshBasicMaterial({transparent:true, toneMapped:false, blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide}));
+shock.rotation.x = -Math.PI/2; shock.position.set(0, FLOOR_Y + 0.03, 0); shock.visible = false; scene.add(shock);
+function shockwave(rgb){ shock.visible = true; shock.material.color.setRGB(...rgb); tween(0.9, e => { shock.scale.setScalar(1.8 + e*16); shock.material.opacity = 1 - e; }, () => { shock.visible = false; }); }
+// =====================================================================
+//  TWEENS
+// =====================================================================
+let tweens = [];
+function tween(dur, fn, done, ease=easeOutCubic){ const tw = {t:0, dur, fn, done, ease}; tweens.push(tw); return tw; }
+function runTweens(dt){
+  for(let i=tweens.length-1;i>=0;i--){
+    const tw = tweens[i]; tw.t += dt;
+    const k = Math.min(1, tw.t/tw.dur);
+    tw.fn(tw.ease(k), k);
+    if(k >= 1){ tweens.splice(i,1); tw.done && tw.done(); }
+  }
+}
+
+// =====================================================================
+//  STATE
+// =====================================================================
+let S;
+const high = () => +(LS.get("philRefundHigh") || 0);
+function newState(){
+  return {
+    phase:"title", wallet:60, score:0, combo:0, bestCombo:0, suspicion:0, level:1, refunds:0, perfects:0,
+    refunded:0, owned:[], gifts:0, round:0, time:0, elapsed:0, cards:[], hover:1, sale:false, game:null,
+    phaseT:0, paused:false, friend:false, formOpen:false, formTrap:-1, ffHeld:false, shake:0, flash:0,
+    faceOverride:null, faceT:0, lastSayT:-99, lastPanic:-99, idleT:0, introduce:null, susWarned:false,
+    lastKeepAt:-9, bloomKick:0, zoneHintShown:0, pedColor:PED_BASE_COLOR.clone(),
+    peakRun:0, pendingLevel:0, bailed:false, formSeen:false, formFree:false, formT:0,
+  };
+}
+S = newState();
+
+const has = (g,k) => g && g.mods.includes(k);
+const baseSpeed = () => Math.min(24, 15 + (S.level-1)*1.0);    // playtime minutes per real second (before the approach curve)
+const saleCost = p => Math.floor(p/2) + 0.99;
+const cost = c => S.sale ? saleCost(c.price) : c.price;
+const modMult = mods => mods.reduce((a,k) => a*MODS[k].mult, 1);
+const priceMult = p => 1 + p/35;
+const COMBO_CAP = 6;
+const comboMult = () => 1 + Math.min(Math.max(S.combo-1, 0), COMBO_CAP)*0.2;
+const nextComboMult = () => 1 + Math.min(S.combo, COMBO_CAP)*0.2;   // what the next streak refund pays
+const gradeFor = left => GRADES.find(g => left <= g.max);
+
+function rollMods(){
+  const L = S.level, avail = Object.keys(MODS).filter(k => MODS[k].lvl <= L);
+  if(!avail.length || Math.random() > Math.min(0.8, 0.4 + 0.07*(L-2))) return [];
+  const a = pick(avail), mods = [a];
+  if(L >= 8 && Math.random() < Math.min(0.55, 0.2 + 0.05*(L-8))){
+    const b = avail.filter(k => k !== a && !["form","lag"].every(z => [a,k].includes(z)));
+    if(b.length) mods.push(pick(b));
+  }
+  return mods;
+}
+function pickTitle(exclude){
+  const used = new Set(exclude);
+  const avail = TITLES.filter(t => !used.has(t[0]));
+  return pick(avail.length ? avail : TITLES);
+}
+
+// =====================================================================
+//  FLOW
+// =====================================================================
+function start(){
+  if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  ensureAC(); Music.start();
+  tweens = [];
+  clearStage();
+  shelfItems.forEach(disposeBox); shelfItems.length = 0;
+  S = newState();
+  hideAllOverlays();
+  clearTimeout(banner.t); $("#banner").classList.add("hidden"); document.body.classList.remove("bannering");
+  $("#toasts").innerHTML = ""; $("#grade").classList.remove("show"); $("#grade").innerHTML = "";
+  $("#lagMsg").classList.add("hidden");
+  S.phase = "store";
+  newStore(true);
+  say(pick(Q_START));
+}
+function clearStage(){
+  S.cards.forEach(c => { disposeBox(c.mesh); c.label && c.label.remove(); });
+  S.cards = [];
+  if(S.game && S.game.mesh && !S.game.shelved) disposeBox(S.game.mesh);
+  S.game = null;
+  $("#labels").innerHTML = "";
+}
+function hideAllOverlays(){
+  ["#titleScreen","#overScreen","#pauseScreen","#chat","#ach","#form"].forEach(s => $(s).classList.add("hidden"));
+}
+
+function newStore(first=false){
+  S.phase = "store"; S.round++;
+  S.suspicion = Math.max(0, S.suspicion - (first ? 0 : SUS_DECAY_PER_ROUND));
+  S.game = null; S.formOpen = false; S.friend = false;
+  const levelUp = S.pendingLevel; S.pendingLevel = 0;
+  // Surprise gift instead of a store (level 3+), never on a level-up round
+  if(S.level >= 3 && !first && !levelUp && Math.random() < 0.16){ return startGift(); }
+  S.sale = S.level >= 2 && Math.random() < 0.15;
+  const titles = [];
+  S.cards = STORE_X.map((x, k) => {
+    const [title, emoji] = pickTitle(titles); titles.push(title);
+    const c = {title, emoji, price:pick(S.round <= 2 ? PRICES.slice(0,4) : PRICES), mods:rollMods(), k};
+    return c;
+  });
+  if(first) S.cards[0].price = pick([4.99, 9.99]);
+  if(S.introduce){
+    // a new twist gets a cheap, affordable first try
+    const c = S.cards[1]; c.mods = [S.introduce]; c.isNew = true; S.introduce = null;
+    const cheap = [4.99, 9.99].filter(p => (S.sale ? saleCost(p) : p) <= S.wallet);
+    if(cheap.length) c.price = pick(cheap);
+  }
+  // Make sure at least one card is affordable if the wallet allows it
+  if(!S.cards.some(c => cost(c) <= S.wallet)){
+    let ok = PRICES.filter(p => (S.sale ? saleCost(p) : p) <= S.wallet);
+    if(!ok.length && !S.bailed){
+      S.bailed = true; S.wallet = round2(S.wallet + 25);
+      toast("👩 Mom sent $25 \"for school stuff\". Last chance, Phil.");
+      ok = PRICES.filter(p => (S.sale ? saleCost(p) : p) <= S.wallet);
+    }
+    if(!ok.length){ return gameOver("broke"); }
+    pick(S.cards).price = pick(ok);
+  }
+  S.cards.forEach((c, k) => {
+    c.mesh = makeBox(c);
+    c.mesh.scale.setScalar(STORE_SCALE);
+    c.mesh.position.set(STORE_X[k], 12 + k*1.5, 0);
+    scene.add(c.mesh);
+    const y0 = c.mesh.position.y;
+    c.dropTw = tween(0.75 + k*0.12, e => { c.mesh.position.y = y0 + (CENTER.y - y0)*e; }, () => { if(S.phase === "store") SFX.drop(); }, easeOutBounce);
+    c.label = makeLabel(c, k);
+  });
+  S.hover = S.cards.findIndex(c => cost(c) <= S.wallet);
+  $("#storeTitle").classList.remove("hidden");
+  $("#saleTag").classList.toggle("hidden", !S.sale);
+  if(S.sale) SFX.ping();
+  S.idleT = 0;
+  if(levelUp){
+    const L = levelUp;
+    laterRun(150, () => {
+      banner(`LEVEL ${L}`, UNLOCKS[L] || `Clocks run faster (level ${L})`);
+      SFX.level();
+      const c = CENTER.clone(); c.y += 1;
+      burstShards(c, rand(0,360), 70, 1.3);
+    });
+  }
+}
+
+function makeLabel(c, k){
+  const d = document.createElement("div");
+  d.className = "label";
+  const mods = c.mods.length ? c.mods.map(m => `<span class="${c.isNew ? "new" : ""}">${c.isNew ? "NEW · " : ""}${MODS[m].icon} ${MODS[m].name}</span>`).join("") : `<span class="plain">No twist</span>`;
+  const mult = modMult(c.mods) * priceMult(cost(c));
+  d.innerHTML = `<div class="lk">${k+1}</div><div class="lt">${esc(c.title)}</div><div class="lm">${mods}</div>
+    <div class="lp">${S.sale ? `<s>${money(c.price)}</s>` : ""}<b>${money(cost(c))}</b><i>×${mult.toFixed(1)} pts</i>${cost(c) <= S.wallet && cost(c) > 0.5*S.wallet ? `<i class="allin">ALL-IN · ${Math.round(100*cost(c)/S.wallet)}%</i>` : ""}</div>`;
+  d.addEventListener("pointerdown", e => { e.preventDefault(); choose(k); });
+  d.addEventListener("pointerenter", () => { S.hover = k; });
+  $("#labels").appendChild(d);
+  return d;
+}
+
+function choose(k){
+  if(S.phase !== "store" || S.paused) return;
+  const c = S.cards[k]; if(!c) return;
+  const p = cost(c);
+  if(p > S.wallet){ toast(`💸 Phil can't afford ${esc(c.title)}.`); SFX.bad(); wiggle(c.mesh); return; }
+  S.cards.forEach(o => { const i = tweens.indexOf(o.dropTw); if(i >= 0) tweens.splice(i, 1); });
+  ensureAC(); Music.start();
+  S.wallet = round2(S.wallet - p);
+  const g = newGame({title:c.title, emoji:c.emoji, price:p, mods:c.mods});
+  g.mesh = c.mesh;
+  S.cards.forEach((o, j) => {
+    o.label.remove();
+    if(j === k) return;
+    const m = o.mesh, from = m.position.clone(), s0 = m.scale.x;
+    tween(0.45, e => { m.position.set(from.x*(1+e*1.5), from.y + e*7, from.z - e*6); m.scale.setScalar(s0*(1-e*.7)); m.rotation.y += 0.25; }, () => disposeBox(m), easeInCubic);
+  });
+  S.cards = [];
+  const m = g.mesh, from = m.position.clone(), r0 = m.rotation.y;
+  tween(0.6, e => { m.position.lerpVectors(from, CENTER, e); m.scale.setScalar(STORE_SCALE + (PLAY_SCALE-STORE_SCALE)*e); m.rotation.y = r0*(1-e) + Math.PI*2*e; }, null, easeOutBack);
+  S.game = g;
+  S.phase = "intro"; S.phaseT = 0.65;
+  $("#storeTitle").classList.add("hidden");
+  SFX.buy(); SFX.whoosh();
+  say(pick(Q_BUY));
+}
+
+function newGame(card, gifter=null){
+  let speed = baseSpeed() * rand(0.93, 1.07);
+  if(card.mods.includes("fast")) speed = Math.min(speed*1.3, 30);
+  if(gifter) speed *= 1.3;
+  const events = [];
+  if(!gifter && S.level >= 4 && Math.random() < 0.28) events.push({at:rand(40, 88), type:"friend"});
+  if(S.level >= 2 && Math.random() < 0.3) events.push({at:rand(25, 95), type:"ach"});
+  const qi = Math.floor(Math.random()*3);
+  return {...card, gifter, speed, rate:speed, rate0:speed, t:0, stall:false, phaseT:rand(.4,.9), pulseIdx:0, lagT:-1, ffMin:0, events, tickIdx:0, mesh:null, shelved:false,
+    quipAt: Math.random() < .6 ? [30,60,85][qi] : 0, quipI: qi, itched:false, hbT:0};
+}
+
+function startGift(){
+  const [title, emoji] = pickTitle([]), who = pick(GIFTERS);
+  const g = newGame({title, emoji, price:0, mods:[]}, who);
+  g.mesh = makeBox(g, who);
+  g.mesh.scale.setScalar(PLAY_SCALE);
+  g.mesh.position.set(0, 14, 0);
+  scene.add(g.mesh);
+  tween(1.0, e => { g.mesh.position.y = 14 + (CENTER.y - 14)*e; }, () => SFX.drop(), easeOutBounce);
+  S.game = g; S.sale = false;
+  S.phase = "intro"; S.phaseT = 1.6;
+  S.gifts++;
+  $("#storeTitle").classList.add("hidden");
+  banner("🎁 GIFT!", `${who} gifted Phil ${title}. Do NOT refund it. Let the clock run out.`);
+  say(pick(Q_GIFT)); SFX.ping();
+}
+
+function onPlayStart(){
+  const g = S.game;
+  if(S.round <= 1) say("Watch the ring. Hit SPACE right before 2:00:00.");
+  else if(g.gifter) say(`Just gotta play ${g.gifter}'s game. No refund. No refund...`);
+  else if(has(g,"zone")) say("Pulse six is 1:50. Refund just before seven.");
+}
+
+function pressRefund(){
+  if(S.paused) return;
+  if(S.phase === "result" && S.time - S.lastKeepAt < 0.7){
+    const late = S.time - S.lastKeepAt;
+    const gm = $("#grade .gmult"); if(gm) gm.textContent = `⏱ You pressed ${late.toFixed(2)}s too late`;
+    face("shock"); philShake(); say(pick(Q_LATE));
+    S.lastKeepAt = -9; return;
+  }
+  if(S.phase !== "play") return;
+  const g = S.game;
+  pressFx();
+  if(S.friend){ const c = $("#chat"); c.classList.remove("nudge"); void c.offsetWidth; c.classList.add("nudge"); SFX.bad(); return; }
+  if(S.formOpen || g.lagT >= 0) return;
+  if(g.gifter) return giftFail();
+  if(has(g,"form")) return openForm();
+  if(has(g,"lag")){ g.lagT = 0.4; $("#lagMsg").classList.remove("hidden"); SFX.click(); return; }
+  resolveRefund();
+}
+function pressFx(){ const b = $("#refundBtn"); b.classList.add("pressed"); later(90, () => b.classList.remove("pressed")); }
+
+function resolveRefund(){
+  const g = S.game;
+  closeForm(); closeFriend(true); closeAch(); $("#lagMsg").classList.add("hidden");
+  const gr = gradeFor(LIMIT - g.t);
+  if(gr.combo) S.combo++; else S.combo = 0;
+  S.bestCombo = Math.max(S.bestCombo, S.combo);
+  const mm = modMult(g.mods), pm = priceMult(g.price), cm = gr.combo ? comboMult() : 1, fb = gr.combo && g.ffMin >= 40 ? 1.25 : 1;
+  const pts = Math.round(gr.pts * mm * pm * cm * fb);
+  const cash = round2(gr.cash * g.price);
+  S.score += pts; S.wallet = round2(S.wallet + g.price + cash); S.refunded += g.price; S.refunds++;
+  if(gr.key === "peak") S.perfects++;
+  S.peakRun = gr.key === "peak" ? S.peakRun + 1 : 0;
+  // Valve watches repeat offenders harder
+  S.suspicion = Math.min(100, S.suspicion + Math.round(gr.sus * (1 + S.refunds/25)));
+  S.phase = "result"; S.phaseT = gr.key === "peak" ? 1.9 : 1.5;
+
+  const parts = [];
+  if(mm > 1) parts.push(`${g.mods.map(m => MODS[m].icon).join("")} ×${mm.toFixed(2).replace(/\.?0+$/,"")}`);
+  parts.push(`price ×${pm.toFixed(1)}`);
+  if(cm > 1) parts.push(`🔥 combo ×${cm.toFixed(1)}`);
+  if(fb > 1) parts.push(`⏩ skip bonus ×1.25`);
+  const up = GRADES[GRADES.indexOf(gr) - 1];
+  const early = up && g.rate > 0 ? (LIMIT - g.t - up.max)/g.rate : 9;
+  const near = early < 0.3 ? `⏱ ${Math.max(1, Math.round(early*1000))} ms early for ${up.name}` : "";
+  const gname = gr.key === "peak" ? (PEAK_NAMES[S.peakRun-1] || `PHIL ×${S.peakRun}`) : gr.name;
+  showGrade(gname, gr.color, `${fmt(g.t)} · ${fmtLeft(g.t)}`,
+    `+${pts.toLocaleString()}  ·  +${money(g.price)} back` + (cash ? `  ·  🃏 +${money(cash)} cards` : ""), parts.join("   "), near);
+
+  const c = g.mesh.position.clone();
+  burstShards(c, g.mesh.userData.hue, gr.key === "peak" ? Math.min(150, 90 + 25*(S.peakRun-1)) : gr.combo ? 60 : 30, gr.key === "peak" ? 1.4 : 1);
+  burstCoins(c, gr.coins);
+  disposeBox(g.mesh); g.mesh = null;
+  ringFlash(gr.flash); pedFlash(gr.flash); shockwave(gr.flash);
+  S.shake = gr.key === "peak" ? 0.5 : gr.combo ? 0.25 : 0.1;
+  S.bloomKick = gr.key === "peak" ? 0.35 : gr.combo ? 0.18 : 0.06;
+  if(gr.key === "peak"){ SFX.perfect(); face("happy"); philJump(true); say(pick(Q_PERFECT)); }
+  else if(gr.combo){ SFX.cash(); face(gr.key === "great" ? "happy" : "smug"); philJump(false); say(pick(Q_REFUND)); }
+  else { SFX.meh(); face("neutral"); say(pick(Q_EARLY)); }
+  if(S.combo >= 3 && gr.combo) toast(`🔥 ${S.combo} refunds in a row`);
+  checkLevel();
+}
+
+function expire(){
+  const g = S.game;
+  closeForm(); closeFriend(true); closeAch(); $("#lagMsg").classList.add("hidden");
+  S.phase = "result"; S.phaseT = 1.7;
+  if(g.gifter){
+    const pts = 300;
+    S.score += pts;
+    S.suspicion = Math.max(0, S.suspicion - SUS_GIFT_RELIEF);
+    showGrade("GIFT HONORED", "#ff6ad5", `${g.gifter} is proud of you`, `+${pts}  ·  suspicion −${SUS_GIFT_RELIEF}`, "combo kept");
+    SFX.ping(); face("happy"); say(`Played ${g.gifter}'s gift the whole way. Growth.`);
+    ringFlash([2.4,0.6,2.0]);
+    S.owned.push({title:g.title, emoji:g.emoji, price:0, gifter:g.gifter});
+  } else {
+    S.owned.push({title:g.title, emoji:g.emoji, price:g.price});
+    S.combo = 0; S.peakRun = 0;
+    if(g.lagT > 0) toast(`📡 Server lag: your refund was still in flight at 2:00:00 (needed ${g.lagT.toFixed(2)}s more). Press earlier on laggy games.`);
+    S.suspicion = Math.max(0, S.suspicion - SUS_KEEP_RELIEF);
+    S.lastKeepAt = S.time;
+    showGrade("OWNED", "#ff4057", `2:00:00 · refund window closed`, `−${money(g.price)} · Phil owns this now`, `Valve suspicion −${SUS_KEEP_RELIEF}`);
+    SFX.bad(); face("sad"); philSquash(); say(pick(Q_KEEP));
+    ringFlash([2.6,0.2,0.3]); pedFlash([2.6,0.2,0.3]);
+    document.body.classList.remove("redflash"); void document.body.offsetWidth; document.body.classList.add("redflash");
+    S.shake = 0.3;
+    if(S.owned.filter(o => o.price > 0).length === 1) laterRun(1800, () => say("Pro tip: if I have to keep one, keep a cheap one."));
+  }
+  sendToShelf(g);
+}
+function sendToShelf(g){
+  const m = g.mesh; g.shelved = true; g.mesh = null;
+  const slot = shelfSlot(shelfItems.length);
+  shelfItems.push(m);
+  shelf.updateMatrixWorld();
+  const target = slot.pos.clone().applyMatrix4(shelf.matrixWorld);
+  const from = m.position.clone(), s0 = m.scale.x, r0 = m.rotation.clone();
+  const tq = new THREE.Quaternion().setFromEuler(slot.rot).premultiply(shelf.quaternion);
+  const q0 = m.quaternion.clone();
+  tween(1.0, e => {
+    m.position.lerpVectors(from, target, e);
+    m.position.y += Math.sin(e*Math.PI)*3;
+    m.scale.setScalar(s0 + (SHELF_SCALE - s0)*e);
+    m.quaternion.slerpQuaternions(q0, tq, e);
+  }, () => { shelf.attach(m); SFX.drop(); }, easeOutCubic);
+}
+
+function giftFail(){
+  const g = S.game;
+  closeForm(); closeAch();
+  S.score = Math.max(0, S.score - 500); S.combo = 0; S.peakRun = 0;
+  S.phase = "result"; S.phaseT = 1.7;
+  showGrade("BUSTED", "#ff4057", `You can't refund a gift. ${g.gifter} saw.`, "−500", "combo lost");
+  burstShards(g.mesh.position.clone(), 330, 60, 1.2);
+  disposeBox(g.mesh); g.mesh = null;
+  SFX.bad(); face("shock"); philShake(); say(pick(Q_GIFT_FAIL));
+  ringFlash([2.6,0.2,0.3]); S.shake = 0.35;
+}
+
+function nextRound(){
+  if(S.suspicion >= 100) return gameOver("valve");
+  newStore();
+}
+
+function checkLevel(){
+  const L = 1 + Math.floor(S.refunds/3);
+  if(L <= S.level) return;
+  S.level = L;
+  const newMod = Object.keys(MODS).find(k => MODS[k].lvl === L);
+  if(newMod) S.introduce = newMod;
+  S.pendingLevel = L;      // announced by newStore so it never covers the grade popup or a gift banner
+}
+
+function gameOver(reason){
+  S.phase = "over";
+  clearStage();
+  $("#bubble").classList.add("hidden");
+  closeFriend(true); closeForm(); closeAch();
+  const prev = high(), isHigh = S.score > prev;
+  if(isHigh) LS.set("philRefundHigh", S.score);
+  SFX.over();
+  const kept = S.owned.filter(o => !o.gifter), n = kept.length, wasted = kept.reduce((a,g) => a + g.price, 0);
+  if(reason === "valve"){
+    $("#overTitle").innerHTML = "🚫 REFUNDS <span>REVOKED</span>";
+    $("#overSub").textContent = `Valve reviewed Phil's account: ${S.refunds} refund${S.refunds===1?"":"s"}, ${S.perfects} of them in the final two minutes. They have questions. Phil has excuses.`;
+  } else {
+    $("#overTitle").innerHTML = "💸 PHIL IS <span>BROKE</span>";
+    $("#overSub").textContent = `Phil spent it all on ${n} game${n===1?"":"s"} he never wanted, and can't afford anything else to refund.`;
+  }
+  const ranks = [
+    [12000,   "Impulse Buyer",             "Refunds early, forgets the rest. Phil would be embarrassed."],
+    [40000,   "Serial Refunder",           "Steam Support knows Phil's name. Not in a good way."],
+    [90000,   "Steam Support's Nightmare", "There's a sticky note about Phil in Valve's office."],
+    [160000,  "Gabe Newell's Nemesis",     "Gabe has a dartboard with Phil's face on it."],
+    [Infinity,"Phil Himself",              "1:59:59, every time. The student has become the master."],
+  ];
+  const ri = ranks.findIndex(r => S.score < r[0]), [, rank, rdesc] = ranks[ri], nx = ranks[ri+1];
+  const toNext = nx ? ` · ${(ranks[ri][0] - S.score).toLocaleString()} pts to ${nx[1]}` : "";
+  $("#overRank").innerHTML = `${isHigh ? "🏆 NEW HIGH SCORE · " : ""}Rank: ${rank}<small>${rdesc}${toNext}</small>`;
+  const mins = Math.floor(S.elapsed/60), secs = Math.floor(S.elapsed%60);
+  const stats = [
+    [S.score.toLocaleString(),"Score"], [Math.max(prev, S.score).toLocaleString(),"High score"],
+    [S.refunds,"Refunds"], ["$"+Math.round(S.refunded).toLocaleString(),"Money refunded"],
+    [S.perfects,"PEAK PHILs"], [S.bestCombo,"Best combo"], [S.level,"Level"], [`${mins}:${String(secs).padStart(2,"0")}`,"Time"],
+  ];
+  $("#overStats").innerHTML = stats.map(([v,l]) => `<div><b>${v}</b>${l}</div>`).join("");
+  $("#overShelf").innerHTML = S.owned.length
+    ? S.owned.map(g => `<div class="row"><span>${g.emoji} ${esc(g.title)}</span><span>${g.gifter ? `gift from ${esc(g.gifter)} 💖` : `2.0 hrs on record · ${money(g.price)}`}</span></div>`).join("")
+      + (n ? `<div class="row"><b>Total wasted</b><b>${money(wasted)}</b></div>` : "")
+    : `<div class="row"><span>Empty. Not a single game kept. A true artist.</span><span>0.0 hrs</span></div>`;
+  later(reason === "valve" ? 1300 : 300, () => {
+    clearTimeout(banner.t); $("#banner").classList.add("hidden"); document.body.classList.remove("bannering");
+    $("#overScreen").classList.remove("hidden");
+  });
+  if(reason === "valve"){ banner("BANNED", "Valve has entered the chat."); S.shake = 0.6; }
+}
+
+// ---------- events during a round ----------
+function fireEvent(type){
+  if(type === "friend"){
+    const [who, av, msg] = pick(FRIENDS);
+    $("#chat .who").textContent = who; $("#chat .av").textContent = av;
+    $("#chat .txt").textContent = msg.replace("{g}", S.game ? S.game.title : "that game");
+    $("#chatBtn").textContent = pick(["Ignore","Leave on read","Appear offline"]);
+    $("#chat .crow").style.justifyContent = pick(["flex-start","center","flex-end"]);
+    $("#chat").classList.remove("hidden");
+    S.friend = true; SFX.ping();
+  } else if(type === "ach"){
+    if(S.formOpen) return;
+    const [n, d] = pick(ACH);
+    $("#ach .an").textContent = n; $("#ach small").textContent = d + " · click to dismiss";
+    $("#ach").classList.remove("hidden");
+    SFX.ping();
+    clearTimeout(fireEvent.achT); fireEvent.achT = later(2200, closeAch);
+  }
+}
+function closeFriend(silent){ if(!S.friend) return; S.friend = false; $("#chat").classList.add("hidden"); if(!silent) SFX.click(); }
+function closeAch(){ $("#ach").classList.add("hidden"); }
+
+function openForm(){
+  const g = S.game;
+  S.formOpen = true; S.formT = 0; closeAch();
+  S.formFree = !S.formSeen; S.formSeen = true;      // the first form of a run pauses the clock (tutorial)
+  const opts = shuffle([...shuffle(REASONS_OK).slice(0,2), pick(REASONS_TRAP)]);
+  S.formTrap = opts.findIndex(o => REASONS_TRAP.includes(o));
+  const f = $("#form");
+  f.innerHTML = `<div class="fq">Why are you requesting a refund? <small>⏱ <span id="formClock"></span></small></div>` +
+    (S.formFree ? `<div style="color:var(--cyan);font-size:14px;font-weight:700;margin-bottom:4px">First form's on the house: the clock waits. Next time you get 1.5s.</div>` : "") +
+    opts.map((o,i) => `<button type="button" data-i="${i}"><kbd>${i+1}</kbd>${esc(o)}</button>`).join("");
+  f.classList.remove("hidden");
+  f.querySelectorAll("button").forEach(b => b.addEventListener("pointerdown", e => { e.preventDefault(); pickReason(+b.dataset.i); }));
+  SFX.click();
+}
+function pickReason(i){
+  if(!S.formOpen || S.phase !== "play" || S.paused) return;
+  if(S.friend){ const c = $("#chat"); c.classList.remove("nudge"); void c.offsetWidth; c.classList.add("nudge"); SFX.bad(); return; }
+  if(i === S.formTrap){
+    closeForm(); SFX.bad(); face("shock"); say("Wait, no. I hate it. I HATE it.");
+    toast("🙊 Phil almost admitted he liked a game. Form cancelled.");
+  } else resolveRefund();
+}
+function closeForm(){ S.formOpen = false; $("#form").classList.add("hidden"); }
+
+// =====================================================================
+//  UPDATE
+// =====================================================================
+function update(dt){
+  S.time += dt;
+  if(S.phase !== "title" && S.phase !== "over") S.elapsed += dt;
+  runTweens(dt);
+  if(S.faceT > 0) S.faceT -= dt;
+
+  if(S.phase === "intro"){
+    S.phaseT -= dt;
+    if(S.phaseT <= 0){ S.phase = "play"; onPlayStart(); }
+  } else if(S.phase === "play"){
+    updatePlay(dt);
+  } else if(S.phase === "result"){
+    S.phaseT -= dt;
+    if(S.phaseT <= 0) nextRound();
+  } else if(S.phase === "store"){
+    S.idleT += dt;
+    if(S.idleT > 9){ S.idleT = 0; say(pick(Q_IDLE)); }
+  }
+  if(S.suspicion >= susWarnAt() && !S.susWarned){ S.susWarned = true; say(pick(Q_SUS)); toast(`⚠️ Valve suspicion is high. Letting a game run out lowers it by ${SUS_KEEP_RELIEF}.`); }
+  if(S.suspicion < susWarnAt() - 25) S.susWarned = false;
+}
+
+function updatePlay(dt){
+  const g = S.game;
+  let m = 1;
+  if(has(g,"stutter")){
+    g.phaseT -= dt;
+    const late = g.t >= 100;   // calmer in the finale so it stays a skill test, not a lottery
+    if(g.phaseT <= 0){ g.stall = !g.stall; g.phaseT = g.stall ? (late ? rand(.15,.45) : rand(.35,1.0)) : (late ? rand(.25,.5) : rand(.3,.7)); }
+    m = g.stall ? 0 : (late ? 1.3 : 2.4);
+  }
+  if(has(g,"ramp")) m *= 0.4 + 0.9*(g.t/LIMIT);
+  // approach curve: brisk early, slower through the finale (blended over 1:25-1:35)
+  m *= g.t < 85 ? 2.0 : g.t < 95 ? 2.0 - 0.125*(g.t - 85) : 0.75;
+  const ff = S.ffHeld && !S.friend && !S.formOpen ? 3 : 1;
+  g.rate0 = g.speed * m * (S.formOpen && S.formFree ? 0 : 1);   // 1x rate, used by the pause rewind
+  g.rate = g.rate0 * ff;
+  const adv = g.rate * dt;
+  g.t += adv;
+  if(ff > 1) g.ffMin += adv;
+
+  const idx = Math.floor(g.t/10);
+  if(idx !== g.tickIdx){
+    g.tickIdx = idx;
+    if(g.t < LIMIT){
+      if(has(g,"zone") && g.t >= 60){ ringMat.uniforms.uPulse.value = 1; SFX.pulse(); }
+      else SFX.tick();
+    }
+  }
+  if(S.formOpen && !S.formFree){ S.formT += dt; if(S.formT > 1.5){ closeForm(); SFX.bad(); toast("⌛ Steam timed out the refund form. Press REFUND again."); } }
+  for(const e of g.events) if(!e.done && g.t >= e.at){ e.done = true; fireEvent(e.type); }
+  if(g.quipAt && !g.gifter && g.t >= g.quipAt){ g.quipAt = 0; if(!S.friend) say(pick(Q_MID[g.quipI])); }
+  if(g.gifter && g.t >= 100 && !g.itched){ g.itched = true; say(pick(Q_ITCH).replace("{who}", g.gifter)); }
+
+  const hidden = has(g,"zone") && g.t >= 60;
+  if(!hidden && !g.gifter && g.t >= 104 && S.time - S.lastPanic > 4){ S.lastPanic = S.time; if(Math.random() < .5) say(pick(Q_PANIC)); }
+  // heartbeat in real time through the finale (music ducks at the same moment)
+  if(!hidden && !g.gifter && g.t >= 100){
+    g.hbT -= dt;
+    if(g.hbT <= 0){ const k = Math.min(1, (g.t - 100)/20); g.hbT = 0.36 - 0.22*k; tone(62 + 40*k, .12, "sine", .2, -25); tone(124 + 80*k, .04, "triangle", .05); }
+  }
+
+  if(g.t >= LIMIT){ g.t = LIMIT; return expire(); }
+  if(g.lagT >= 0){ g.lagT -= dt; if(g.lagT <= 0){ g.lagT = -1; resolveRefund(); } }
+}
+
+// =====================================================================
+//  ANIMATION + RENDER
+// =====================================================================
+const tmpV = new THREE.Vector3();
+function toScreen(v){ tmpV.copy(v).project(camera); return [(tmpV.x+1)/2*innerWidth, (1-tmpV.y)/2*innerHeight, tmpV.z]; }
+
+function animate(dt){
+  const t = S.time;
+  floorMat.uniforms.uTime.value = t;
+  sunMat.uniforms.uTime.value = t;
+  beamMat.uniforms.uTime.value = t;
+  ringMat.uniforms.uTime.value = t;
+
+  // dust drift
+  for(let i=0;i<dust.n;i++){ let y = dust.pos[i*3+1] + dust.spd[i]*dt; if(y > 14) y = FLOOR_Y; dust.pos[i*3+1] = y; }
+  dust.p.geometry.attributes.position.needsUpdate = true;
+
+  // ring state
+  const g = S.game, U = ringMat.uniforms;
+  const playing = g && (S.phase === "play" || S.phase === "intro" || S.phase === "result");
+  const prog = g ? g.t/LIMIT : 0;
+  U.uProgress.value = playing ? prog : 0;
+  U.uIdle.value += ((playing ? 0 : 1) - U.uIdle.value) * Math.min(1, dt*5);
+  U.uHidden.value = g && has(g,"zone") && g.t >= 60 && S.phase !== "result" ? 1 : 0;
+  U.uDanger.value = g && S.phase === "play" && !U.uHidden.value && !g.gifter && g.t >= 100 ? 0.35 : 0;
+  U.uPulse.value *= Math.exp(-dt*6);
+  U.uFlash.value *= Math.exp(-dt*3);
+
+  // store boxes: float, face camera, hover lift
+  S.cards.forEach((c, k) => {
+    if(!c.mesh) return;
+    const hov = S.hover === k;
+    c.mesh.rotation.y += ((hov ? Math.sin(t*2)*0.25 : Math.sin(t*0.8 + k)*0.35) - c.mesh.rotation.y) * Math.min(1, dt*6);
+    const s = STORE_SCALE * (hov ? 1.08 : 1);
+    c.mesh.scale.setScalar(c.mesh.scale.x + (s - c.mesh.scale.x)*Math.min(1, dt*10));
+    if(!c.dropTw || c.dropTw.t >= c.dropTw.dur) c.mesh.position.y = CENTER.y + Math.sin(t*1.6 + k*1.3)*0.08 + (hov ? 0.25 : 0);
+  });
+
+  // the box in play: idle sway, danger tremble
+  if(g && g.mesh && (S.phase === "play")){
+    const m = g.mesh, hidden = U.uHidden.value > 0;
+    m.rotation.y = Math.sin(t*0.9)*0.22;
+    m.rotation.x = Math.sin(t*0.7)*0.04;
+    let tremble = 0;
+    if(!hidden && g.t > 90) tremble = (g.t - 90)/30 * 0.05;
+    m.position.set(CENTER.x + rand(-1,1)*tremble, CENTER.y + Math.sin(t*1.8)*0.07 + rand(-1,1)*tremble, CENTER.z);
+  }
+
+  // pedestal + beam color
+  S.pedColor.lerp(PED_BASE_COLOR, Math.min(1, dt*2.5));
+  pedRingTop.material.color.copy(S.pedColor);
+  beamMat.uniforms.uColor.value.copy(S.pedColor).multiplyScalar(0.3);
+  boxLight.intensity = Math.max(0, boxLight.intensity - dt*40);
+
+  // bloom kick
+  S.bloomKick *= Math.exp(-dt*3);
+  bloom.strength = 0.65 + S.bloomKick;
+  floorMat.uniforms.uBeat.value = S.bloomKick;
+
+  // Phil
+  const P = phil.userData;
+  P.jumpV -= 25*dt; P.jump = Math.max(0, P.jump + P.jumpV*dt); if(P.jump === 0) P.jumpV = Math.max(P.jumpV, 0);
+  P.squash *= Math.exp(-dt*3);
+  P.shakeT = Math.max(0, P.shakeT - dt);
+  phil.position.y = FLOOR_Y + P.jump;
+  phil.position.x = LAYOUT.philX + (P.shakeT > 0 ? Math.sin(t*60)*0.08 : 0);
+  const PS = LAYOUT.philS || 1.35;
+  phil.scale.set(PS*(1 + P.squash*0.2), PS*(1 - P.squash*0.25 + Math.sin(t*2.2)*0.012), PS);
+  if(P.spin > 0){ P.spin = Math.max(0, P.spin - dt*10); phil.rotation.y = 0.55 + P.spin; } else phil.rotation.y = 0.55;
+  const target = g && g.mesh ? g.mesh.position : CENTER;
+  P.head.rotation.y = Math.sin(t*0.7)*0.08 + 0.1;
+  P.head.rotation.x = -0.08 + (P.squash > 0.2 ? 0.35 : 0);
+  P.head.rotation.z = Math.sin(t*1.3)*0.05;
+  P.armL.rotation.z = 0.5 + Math.sin(t*9)*0.05; P.armR.rotation.z = -0.5 - Math.sin(t*9+1)*0.05;
+  let expr = "smug";
+  if(S.faceT > 0) expr = S.faceOverride;
+  else if(S.phase === "play" && g && !g.gifter && !U.uHidden.value && g.t >= 100) expr = "panic";
+  else if(S.phase === "play" && g && g.gifter) expr = "neutral";
+  else if(S.phase === "store" && S.suspicion >= susWarnAt()) expr = "panic";
+  drawFace(expr);
+
+  // camera: slow push-in as the clock nears 2:00:00, plus shake and mouse parallax
+  const push = S.phase === "play" && g && !U.uHidden.value ? THREE.MathUtils.smoothstep(prog, 0.55, 1.0) * 0.9 : 0;
+  camTarget.set(CAM_BASE.x + mouse.x*0.6, CAM_BASE.y + mouse.y*0.35, camDist() - push);
+  camera.position.lerp(camTarget, Math.min(1, dt*3));
+  S.shake *= Math.exp(-dt*7);
+  const sh = S.shake;
+  camera.lookAt(CAM_LOOK.x, LAYOUT.lookY + push*0.3, CAM_LOOK.z);
+  if(sh > 0.002){ camera.position.x += rand(-1,1)*sh*0.5; camera.position.y += rand(-1,1)*sh*0.5; camera.rotation.z = rand(-1,1)*sh*0.03; }
+
+  stepPool(shards, dt);
+  stepPool(coins, dt);
+}
+const camTarget = new THREE.Vector3();
+const mouse = new THREE.Vector2();
+const LAYOUT = {philX:-7.3, fitW:20.5, lookY:CAM_LOOK.y, clock:CLOCK_ANCHOR.clone()};
+function applyLayout(){
+  const portrait = camera.aspect < 0.9;
+  LAYOUT.fitW = portrait ? 11.8 : 20.5;
+  const tanH = Math.tan(THREE.MathUtils.degToRad(camera.fov/2));
+  LAYOUT.philX = portrait ? -14*tanH*camera.aspect*0.6 : -7.3;
+  LAYOUT.lookY = portrait ? -0.8 : CAM_LOOK.y;
+  LAYOUT.philS = portrait ? 0.62 : 1.35;
+  LAYOUT.clock.copy(CLOCK_ANCHOR); if(portrait) LAYOUT.clock.y -= 0.9;
+  phil.position.z = portrait ? camDist() - 14 : 1.4;
+  shelf.position.set(portrait ? 4.6 : 7.4, FLOOR_Y, portrait ? -5.5 : 0.2);
+  scene.fog.density = 0.018 * Math.min(1, CAM_BASE.z / camDist());
+}
+function camDist(){ const need = LAYOUT.fitW / (2*Math.tan(THREE.MathUtils.degToRad(camera.fov/2)) * camera.aspect); return Math.max(CAM_BASE.z, need); }
+
+function renderHUD(){
+  $("#hWallet b").textContent = money(S.wallet);
+  $("#hScore b").textContent = S.score.toLocaleString();
+  $("#hCombo b").textContent = "x" + nextComboMult().toFixed(1);
+  $("#hLevel b").textContent = S.level;
+  $("#hSus .susfill").style.width = S.suspicion + "%";
+  $("#hSus").classList.toggle("hot", S.suspicion >= susWarnAt());
+
+  const g = S.game, playing = g && ["intro","play","result"].includes(S.phase);
+  $("#clockBox").classList.toggle("hidden", !playing);
+  $("#controls").classList.toggle("hidden", !(S.phase === "play" || S.phase === "intro" || S.phase === "result"));
+  $("#storeHint").classList.toggle("hidden", S.phase !== "store");
+  if(playing){
+    const hidden = has(g,"zone") && g.t >= 60 && S.phase !== "result";
+    $("#clockBox").style.visibility = S.formOpen ? "hidden" : "";
+    const cl = $("#clock");
+    cl.textContent = hidden ? "?:??:??" : fmt(g.t);
+    cl.classList.toggle("hiddenclock", hidden);
+    cl.classList.toggle("late", g.t >= LIMIT);
+    const [x, y] = toScreen(LAYOUT.clock);
+    const box = $("#clockBox"); box.style.left = x + "px"; box.style.top = y + "px";
+    const modsHtml = g.gifter ? `<span class="mod gift">🎁 Gift from ${esc(g.gifter)}<small>DON'T refund. Let it run out.</small></span>`
+      : g.mods.map(k => `<span class="mod">${MODS[k].icon} ${MODS[k].name}<small>${MODS[k].desc}</small></span>`).join("");
+    if(renderHUD.mods !== modsHtml){ renderHUD.mods = modsHtml; $("#mods").innerHTML = modsHtml; }
+    $("#refundBtn").classList.toggle("disabled", S.phase !== "play" || S.friend);
+    if(S.formOpen){ const fc = $("#formClock"); if(fc) fc.textContent = hidden ? "?:??:??" : fmt(g.t); }
+    const ffOn = S.ffHeld && S.phase === "play" && !S.friend && !S.formOpen;
+    $("#ffBtn").classList.toggle("on", ffOn);
+    const ffTxt = g.ffMin >= 40 ? "+25%" : g.ffMin >= 1 ? `${Math.floor(g.ffMin)}/40` : "⏩";
+    if(renderHUD.ff !== ffTxt){ renderHUD.ff = ffTxt; $("#ffBtn b").textContent = ffTxt; }
+  }
+  // gold zone hint for the first rounds
+  const zh = $("#zoneHint"), showHint = S.phase === "play" && S.round <= 2 && g && !g.gifter;
+  zh.classList.toggle("hidden", !showHint);
+  if(showHint){ const [x,y] = toScreen(ringPoint(1 - 4/120, 4.25)); zh.style.left = Math.max(zh.offsetWidth + 8, x - 8) + "px"; zh.style.top = y + "px"; }
+
+  // store labels
+  const labelGap = toScreen(tmpClock.set(STORE_X[1], CENTER.y - 1.55, 0.4))[0] - toScreen(tmpClock.set(STORE_X[0], CENTER.y - 1.55, 0.4))[0];
+  S.cards.forEach((c, k) => {
+    if(!c.label || !c.mesh) return;
+    const [x, y] = toScreen(tmpClock.set(c.mesh.position.x, CENTER.y - 1.55, 0.4));
+    c.label.style.left = x + "px"; c.label.style.top = y + "px";
+    c.label.style.width = Math.min(260, labelGap - 12) + "px";
+    c.label.classList.toggle("hover", S.hover === k);
+    c.label.classList.toggle("cant", cost(c) > S.wallet);
+  });
+
+  // Phil's speech bubble
+  const b = $("#bubble");
+  if(S.phase !== "title" && S.phase !== "over"){
+    const [x, y] = toScreen(tmpClock.set(phil.position.x + 0.2, phil.position.y + 4.9*(LAYOUT.philS||1.35)/1.35, phil.position.z));
+    const bw = b.offsetWidth, bh = b.offsetHeight;
+    let bx = clamp(x, 8 + 0.2*bw, innerWidth - 8 - 0.8*bw), by = Math.max(bh + 8, y), side = false;
+    if(camera.aspect < 0.9){   // portrait: if the bubble would sit on the labels / clock, put it beside Phil's head
+      const L = bx - 0.2*bw, T = by - bh;
+      const avoid = S.phase === "store" ? [...document.querySelectorAll("#labels .label")] : [...document.querySelectorAll("#clock, #clockSub, #mods .mod")];
+      const box = e => { if(e.classList.contains("label") || e.classList.contains("mod")) return e.getBoundingClientRect(); const rg = document.createRange(); rg.selectNodeContents(e); return rg.getBoundingClientRect(); };
+      if(avoid.some(e => { const r = box(e); return r.width > 0 && r.left < L + bw && r.right > L && r.top < by && r.bottom > T; })){
+        const ps = phil.scale.x, [hx, hy] = toScreen(tmpClock.set(phil.position.x + 1.0*ps, phil.position.y + 2.5*ps, phil.position.z));
+        bx = Math.min(hx + 12 + 0.2*bw, innerWidth - 8 - 0.8*bw); by = hy + bh/2; side = true;
+      }
+    }
+    b.classList.toggle("side", side);
+    b.style.visibility = camera.aspect < 0.9 && S.phase === "result" ? "hidden" : "";   // phones: the grade needs the room
+    b.style.left = bx + "px"; b.style.top = by + "px";
+  }
+  // grade popup follows the pedestal center
+  const [gx, gy] = toScreen(CENTER);
+  const gd = $("#grade"); gd.style.left = gx + "px"; gd.style.top = gy + "px";
+  const [cx, cy] = toScreen(ringPoint(0.96, 3.3));
+  const chat = $("#chat"); chat.style.top = Math.max(84, cy - 40) + "px";
+}
+const tmpClock = new THREE.Vector3();
+
+// =====================================================================
+//  FEEDBACK HELPERS
+// =====================================================================
+function say(text){
+  const b = $("#bubble");
+  b.textContent = text; b.classList.remove("hidden");
+  b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
+  S.lastSayT = S.time;
+}
+function face(expr, dur=1.6){ S.faceOverride = expr; S.faceT = dur; }
+function philJump(big){ const P = phil.userData; P.jumpV = big ? 9 : 5.5; if(big) P.spin = Math.PI*2; }
+function philSquash(){ phil.userData.squash = 1; }
+function philShake(){ phil.userData.shakeT = 0.6; }
+function wiggle(m){ const r0 = m.rotation.z; tween(0.4, (e,k) => { m.rotation.z = r0 + Math.sin(k*Math.PI*6)*0.15*(1-k); }); }
+function ringFlash(rgb){ ringMat.uniforms.uFlash.value = 1.2; ringMat.uniforms.uFlashColor.value.setRGB(...rgb); boxLight.color.setRGB(...rgb.map(v => Math.min(1, v/2.6))); boxLight.intensity = 9; }
+function pedFlash(rgb){ S.pedColor.setRGB(rgb[0]*1.4, rgb[1]*1.4, rgb[2]*1.4); }
+function showGrade(name, color, time, pts, mult, near=""){
+  const g = $("#grade");
+  g.innerHTML = `<div class="gname" style="color:${color};text-shadow:0 0 30px ${color},0 0 60px ${color}88,0 5px 0 #0009">${esc(name)}</div>
+    <div class="gtime">${esc(time)}</div><div class="gpts">${esc(pts)}</div><div class="gmult">${esc(mult)}</div>${near ? `<div class="gnear">${esc(near)}</div>` : ""}`;
+  g.classList.remove("show"); void g.offsetWidth; g.classList.add("show");
+}
+function toast(html){
+  const box = $("#toasts"), t = document.createElement("div");
+  t.className = "toast"; t.innerHTML = html; box.appendChild(t);
+  while(box.children.length > 3) box.firstChild.remove();
+  later(3000, () => t.classList.add("out")); later(3500, () => t.remove());
+}
+function banner(title, sub){
+  const b = $("#banner");
+  b.innerHTML = `<div class="bt">${esc(title)}</div>${sub ? `<div class="bs">${esc(sub)}</div>` : ""}`;
+  b.classList.remove("hidden"); document.body.classList.add("bannering");
+  clearTimeout(banner.t); banner.t = later(2600, () => { b.classList.add("hidden"); document.body.classList.remove("bannering"); });
+}
+
+// =====================================================================
+//  INPUT
+// =====================================================================
+function togglePause(force){
+  if(S.phase === "title" || S.phase === "over") return;
+  const was = S.paused;
+  S.paused = force !== undefined ? force : !S.paused;
+  const g = S.game;
+  // Resuming rewinds ~1s of play so a pause can't be used to read and time a refund. Not needed while the clock is
+  // frozen (free first form) or hidden (Immersive after 1:00, where a rewind would also replay pulses).
+  if(was && !S.paused && S.phase === "play" && g && g.lagT < 0 && !(S.formOpen && S.formFree) && !(has(g,"zone") && g.t >= 60)){
+    g.t = Math.max(0, g.t - Math.max(g.rate0 || 0, g.speed*0.75)*1.0);
+    g.tickIdx = Math.floor(g.t/10);
+  }
+  $("#form").style.visibility = S.paused ? "hidden" : "";
+  S.ffHeld = false;
+  $("#pauseScreen").classList.toggle("hidden", !S.paused);
+}
+function toggleMute(){
+  muted = !muted; LS.set("philMuted", muted ? "1" : "0");
+  $("#muteBtn").textContent = muted ? "🔇" : "🔊";
+  if(master) master.gain.value = muted ? 0 : 1;
+  if(!muted && Music.on && AC) Music.next = AC.currentTime + 0.05;
+}
+addEventListener("keydown", e => {
+  if(e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key;
+  const dm = /^(?:Digit|Numpad)([1-3])$/.exec(e.code), d = dm ? +dm[1] : 0;   // works with Shift held and on AZERTY
+  if(k === "Shift"){ S.ffHeld = true; return; }
+  if(e.repeat) { if(k === " ") e.preventDefault(); return; }
+  if(k === "m" || k === "M"){ toggleMute(); return; }
+  if(S.phase === "title" || S.phase === "over"){
+    if(k === "Enter" || k === " "){ e.preventDefault(); if(S.phase === "over" && $("#overScreen").classList.contains("hidden")) return; start(); }
+    return;
+  }
+  if(k === "p" || k === "P"){ togglePause(); return; }
+  if(k === "Escape"){
+    if(S.paused) togglePause(false);
+    else if(S.friend) closeFriend();
+    else if(!$("#ach").classList.contains("hidden")) closeAch();
+    else togglePause(true);
+    return;
+  }
+  if(S.paused) return;
+  if(k === " "){ e.preventDefault(); pressRefund(); return; }
+  if(S.phase === "store"){
+    if(d) choose(d - 1);
+    else if(k === "ArrowLeft") S.hover = Math.max(0, S.hover - 1);
+    else if(k === "ArrowRight") S.hover = Math.min(2, S.hover + 1);
+    else if(k === "Enter" && S.hover >= 0) choose(S.hover);
+    return;
+  }
+  if(S.formOpen && d) pickReason(d - 1);
+});
+addEventListener("keyup", e => { if(e.key === "Shift") S.ffHeld = false; });
+$("#refundBtn").addEventListener("pointerdown", e => { e.preventDefault(); pressRefund(); });
+const ff = $("#ffBtn");
+ff.addEventListener("pointerdown", e => { e.preventDefault(); S.ffHeld = true; ff.setPointerCapture(e.pointerId); });
+ff.addEventListener("pointerup", () => { S.ffHeld = false; });
+ff.addEventListener("pointercancel", () => { S.ffHeld = false; });
+$("#chatBtn").addEventListener("pointerdown", e => { e.preventDefault(); closeFriend(); });
+$("#ach").addEventListener("pointerdown", e => { e.preventDefault(); closeAch(); });
+$("#startBtn").addEventListener("click", start);
+$("#againBtn").addEventListener("click", start);
+$("#resumeBtn").addEventListener("click", () => togglePause(false));
+$("#muteBtn").addEventListener("click", e => { toggleMute(); e.currentTarget.blur(); });
+$("#pauseBtn").addEventListener("click", e => { togglePause(); e.currentTarget.blur(); });
+document.addEventListener("visibilitychange", () => { if(document.hidden) togglePause(true); });
+addEventListener("blur", () => { S.ffHeld = false; togglePause(true); });
+
+// store hover / click via raycasting on the 3D boxes
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+function pickCard(e){
+  ndc.set(e.clientX/innerWidth*2 - 1, -(e.clientY/innerHeight)*2 + 1);
+  ray.setFromCamera(ndc, camera);
+  const meshes = S.cards.map(c => c.mesh).filter(Boolean);
+  const hit = ray.intersectObjects(meshes, true)[0];
+  if(!hit) return -1;
+  return S.cards.findIndex(c => { let o = hit.object; while(o){ if(o === c.mesh) return true; o = o.parent; } return false; });
+}
+canvas.addEventListener("pointermove", e => {
+  mouse.set(e.clientX/innerWidth*2 - 1, -(e.clientY/innerHeight)*2 + 1);
+  if(S.phase !== "store") return;
+  const k = pickCard(e); if(k >= 0) S.hover = k;
+  canvas.style.cursor = k >= 0 ? "pointer" : "default";
+});
+canvas.addEventListener("pointerdown", e => {
+  if(S.phase === "store"){ const k = pickCard(e); if(k >= 0) choose(k); }
+  else if(S.phase === "play" && e.pointerType === "touch") pressRefund();
+});
+
+function resize(){
+  camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix(); applyLayout();
+  renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight);
+  bloom.resolution.set(innerWidth, innerHeight);
+}
+addEventListener("resize", resize);
+
+// =====================================================================
+//  MAIN LOOP
+// =====================================================================
+let last = performance.now();
+function frame(now){
+  const dt = Math.min(0.05, (now - last)/1000); last = now;
+  if(!S.paused){ update(dt); animate(dt); }
+  Music.tick();
+  renderHUD();
+  composer.render();
+  requestAnimationFrame(frame);
+}
+
+// Title screen: show a live store behind the panel
+function showTitle(){
+  S = newState();
+  S.phase = "title";
+  const titles = [];
+  S.cards = STORE_X.map((x,k) => { const [title, emoji] = pickTitle(titles); titles.push(title); const c = {title, emoji, price:pick(PRICES), mods:[], k}; c.mesh = makeBox(c); c.mesh.scale.setScalar(STORE_SCALE); c.mesh.position.set(x, CENTER.y, 0); scene.add(c.mesh); return c; });
+  S.hover = 1;
+  $("#titleScreen").classList.remove("hidden");
+  if(high()) $("#titleHigh").textContent = "High score: " + high().toLocaleString();
+}
+$("#muteBtn").textContent = muted ? "🔇" : "🔊";
+resize();
+// Wait (briefly) for the web fonts so the procedural box art uses them
+const fontsReady = document.fonts ? Promise.all([document.fonts.load('900 60px "Russo One"'), document.fonts.load('700 30px "Rajdhani"')]).catch(() => {}) : Promise.resolve();
+Promise.race([fontsReady, new Promise(r => setTimeout(r, 2500))]).then(() => {
+  showTitle();
+  window.__philBooted = true;
+  $("#loading").remove();
+  requestAnimationFrame(frame);
+});
+
+// test hook for automated playtesting
+window.__dbg = {LAYOUT, phil, shelf, applyLayout, renderer};
+window.PHIL = { get S(){ return S; }, update, animate, renderHUD, start, choose, pressRefund, pickReason, closeFriend, closeAch, fireEvent, checkLevel, gameOver, newStore, cost, GRADES, MODS, LIMIT, camera, scene, composer, tweens:() => tweens };
+</script>
+</body>
+</html>
